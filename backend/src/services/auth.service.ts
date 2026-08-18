@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
+import { AppError } from '../errors/app-error.js';
 
 interface RegisterUserInput {
   name: string;
@@ -21,7 +22,7 @@ export async function registerUser({
   });
 
   if (existingUser) {
-    throw new Error('EMAIL_ALREADY_EXISTS');
+   throw new AppError('Email already registered', 409);
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
@@ -58,13 +59,13 @@ export async function loginUser({
   });
 
   if (!user) {
-    throw new Error('INVALID_CREDENTIALS');
+    throw new AppError('Invalid email or password', 401);
   }
 
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordMatches) {
-    throw new Error('INVALID_CREDENTIALS');
+   throw new AppError('Invalid email or password', 401);
   }
 
   return {

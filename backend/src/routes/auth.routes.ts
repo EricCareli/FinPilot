@@ -40,33 +40,18 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    try {
-      const user = await registerUser({
-        name: normalizedName,
-        email: normalizedEmail,
-        password,
-      });
+    const user = await registerUser({
+      name: normalizedName,
+      email: normalizedEmail,
+      password,
+    });
 
-      return reply.status(201).send({
-        status: 'success',
-        user,
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message === 'EMAIL_ALREADY_EXISTS') {
-        return reply.status(409).send({
-          status: 'error',
-          message: 'Email already registered',
-        });
-      }
-
-      app.log.error(error);
-
-      return reply.status(500).send({
-        status: 'error',
-        message: 'Internal server error',
-      });
-    }
+    return reply.status(201).send({
+      status: 'success',
+      user,
+    });
   });
+
   app.post('/auth/login', async (request, reply) => {
     const { email, password } = request.body as {
       email?: string;
@@ -80,36 +65,20 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    try {
-      const user = await loginUser({
-        email,
-        password,
-      });
+    const user = await loginUser({
+      email,
+      password,
+    });
 
-      const token = await app.jwt.sign({
-        sub: user.id,
-        email: user.email,
-      });
+    const token = await app.jwt.sign({
+      sub: user.id,
+      email: user.email,
+    });
 
-      return reply.status(200).send({
-        status: 'success',
-        user,
-        token,
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message === 'INVALID_CREDENTIALS') {
-        return reply.status(401).send({
-          status: 'error',
-          message: 'Invalid email or password',
-        });
-      }
-
-      app.log.error(error);
-
-      return reply.status(500).send({
-        status: 'error',
-        message: 'Internal server error',
-      });
-    }
+    return reply.status(200).send({
+      status: 'success',
+      user,
+      token,
+    });
   });
 }
