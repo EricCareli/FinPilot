@@ -1,6 +1,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { healthRoutes } from './routes/health.routes.js';
+import jwt from '@fastify/jwt';
+import { authRoutes } from './routes/auth.routes.js';
 
 // Porta padrão 3333, mas pode ser sobrescrita pela variável de ambiente PORT
 const PORT = Number(process.env.PORT) || 3333;
@@ -15,9 +17,13 @@ async function buildServer() {
     origin: true,
   });
 
+await app.register(jwt, {
+  secret: process.env.JWT_SECRET!,
+});
+
   // Registro das rotas
   await healthRoutes(app);
-
+await authRoutes(app);
   return app;
 }
 
