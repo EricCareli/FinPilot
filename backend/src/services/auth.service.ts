@@ -2,47 +2,62 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../errors/app-error.js';
 
-interface RegisterUserInput {
-  name: string;
-  email: string;
-  password: string;
-}
-
 export async function registerUser({
   name,
   email,
   password,
-}: RegisterUserInput) {
-  const normalizedEmail = email.trim().toLowerCase();
-
+}: {
+  name: string;
+  email: string;
+  password: string;
+}) {
   const existingUser = await prisma.user.findUnique({
     where: {
-      email: normalizedEmail,
+      email,
     },
   });
 
   if (existingUser) {
-   throw new AppError('Email already registered', 409);
+    throw new AppError('Email already registered', 409);
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
-    data: {
-      name: name.trim(),
-      email: normalizedEmail,
-      passwordHash,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+      },
+    });
+
+    const workspace = await tx.workspace.create({
+      data: {
+        name: 'Personal',
+        type: 'PERSONAL',
+      },
+    });
+
+    await tx.workspaceMember.create({
+      data: {
+        workspaceId: workspace.id,
+        userId: user.id,
+        role: 'OWNER',
+      },
+    });
+
+    return user;
   });
 
-  return user;
+  return {
+    id: result.id,
+    name: result.name,
+    email: result.email,
+    createdAt: result.createdAt,
+  };
 }
+
 export async function loginUser({
   email,
   password,
@@ -65,7 +80,7 @@ export async function loginUser({
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordMatches) {
-   throw new AppError('Invalid email or password', 401);
+    throw new AppError('Invalid email or password', 401);
   }
 
   return {
