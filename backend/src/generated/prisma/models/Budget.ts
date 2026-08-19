@@ -533,14 +533,6 @@ export type BudgetUncheckedUpdateManyWithoutCategoryNestedInput = {
   deleteMany?: Prisma.BudgetScalarWhereInput | Prisma.BudgetScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type BudgetCreateWithoutWorkspaceInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string

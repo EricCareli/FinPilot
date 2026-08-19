@@ -58,6 +58,13 @@ enum Currency {
   EUR
 }
 
+enum CreditCardInvoiceStatus {
+  OPEN
+  CLOSED
+  PAID
+  OVERDUE
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -107,22 +114,58 @@ model WorkspaceMember {
 }
 
 model Account {
-  id          String        @id @default(uuid())
-  workspaceId String
-  name        String
-  type        AccountType
-  status      AccountStatus @default(ACTIVE)
-  currency    Currency      @default(BRL)
-  initialBalance Decimal     @default(0) @db.Decimal(19, 4)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  workspaceId    String
+  name           String
+  type           AccountType
+  status         AccountStatus @default(ACTIVE)
+  currency       Currency      @default(BRL)
+  initialBalance Decimal       @default(0) @db.Decimal(19, 4)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  entries   LedgerEntry[]
+  workspace  Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries    LedgerEntry[]
+  creditCard CreditCard?
 
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@map("accounts")
+}
+
+model CreditCard {
+  id          String   @id @default(uuid())
+  accountId   String   @unique
+  creditLimit Decimal  @db.Decimal(19, 4)
+  closingDay  Int
+  dueDay      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  account  Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  invoices CreditCardInvoice[]
+
+  @@map("credit_cards")
+}
+
+model CreditCardInvoice {
+  id             String                  @id @default(uuid())
+  creditCardId   String
+  referenceMonth Int
+  referenceYear  Int
+  closingDate    DateTime
+  dueDate        DateTime
+  totalAmount    Decimal                 @default(0) @db.Decimal(19, 4)
+  status         CreditCardInvoiceStatus @default(OPEN)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  creditCard CreditCard @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+
+  @@unique([creditCardId, referenceMonth, referenceYear])
+  @@index([creditCardId])
+  @@index([creditCardId, status])
+  @@map("credit_card_invoices")
 }
 
 model Category {
@@ -153,8 +196,8 @@ model FinancialTransaction {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  category  Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category  Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   entries   LedgerEntry[]
 
   @@index([workspaceId])
@@ -172,7 +215,7 @@ model LedgerEntry {
   createdAt     DateTime        @default(now())
 
   transaction FinancialTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  account     Account             @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  account     Account              @relation(fields: [accountId], references: [id], onDelete: Restrict)
 
   @@index([transactionId])
   @@index([accountId])

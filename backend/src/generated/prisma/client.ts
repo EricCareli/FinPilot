@@ -62,6 +62,16 @@ export type WorkspaceMember = Prisma.WorkspaceMemberModel
  */
 export type Account = Prisma.AccountModel
 /**
+ * Model CreditCard
+ * 
+ */
+export type CreditCard = Prisma.CreditCardModel
+/**
+ * Model CreditCardInvoice
+ * 
+ */
+export type CreditCardInvoice = Prisma.CreditCardInvoiceModel
+/**
  * Model Category
  * 
  */

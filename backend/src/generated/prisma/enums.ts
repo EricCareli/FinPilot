@@ -82,3 +82,13 @@ export const Currency = {
 } as const
 
 export type Currency = (typeof Currency)[keyof typeof Currency]
+
+
+export const CreditCardInvoiceStatus = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
+  PAID: 'PAID',
+  OVERDUE: 'OVERDUE'
+} as const
+
+export type CreditCardInvoiceStatus = (typeof CreditCardInvoiceStatus)[keyof typeof CreditCardInvoiceStatus]

@@ -55,6 +55,8 @@ export const ModelName = {
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   Account: 'Account',
+  CreditCard: 'CreditCard',
+  CreditCardInvoice: 'CreditCardInvoice',
   Category: 'Category',
   FinancialTransaction: 'FinancialTransaction',
   LedgerEntry: 'LedgerEntry',
@@ -126,6 +128,35 @@ export const AccountScalarFieldEnum = {
 } as const
 
 export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+export const CreditCardScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  creditLimit: 'creditLimit',
+  closingDay: 'closingDay',
+  dueDay: 'dueDay',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CreditCardScalarFieldEnum = (typeof CreditCardScalarFieldEnum)[keyof typeof CreditCardScalarFieldEnum]
+
+
+export const CreditCardInvoiceScalarFieldEnum = {
+  id: 'id',
+  creditCardId: 'creditCardId',
+  referenceMonth: 'referenceMonth',
+  referenceYear: 'referenceYear',
+  closingDate: 'closingDate',
+  dueDate: 'dueDate',
+  totalAmount: 'totalAmount',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CreditCardInvoiceScalarFieldEnum = (typeof CreditCardInvoiceScalarFieldEnum)[keyof typeof CreditCardInvoiceScalarFieldEnum]
 
 
 export const CategoryScalarFieldEnum = {

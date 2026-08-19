@@ -250,6 +250,7 @@ export type AccountWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   entries?: Prisma.LedgerEntryListRelationFilter
+  creditCard?: Prisma.XOR<Prisma.CreditCardNullableScalarRelationFilter, Prisma.CreditCardWhereInput> | null
 }
 
 export type AccountOrderByWithRelationInput = {
@@ -264,6 +265,7 @@ export type AccountOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
   entries?: Prisma.LedgerEntryOrderByRelationAggregateInput
+  creditCard?: Prisma.CreditCardOrderByWithRelationInput
 }
 
 export type AccountWhereUniqueInput = Prisma.AtLeast<{
@@ -281,6 +283,7 @@ export type AccountWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   entries?: Prisma.LedgerEntryListRelationFilter
+  creditCard?: Prisma.XOR<Prisma.CreditCardNullableScalarRelationFilter, Prisma.CreditCardWhereInput> | null
 }, "id">
 
 export type AccountOrderByWithAggregationInput = {
@@ -326,6 +329,7 @@ export type AccountCreateInput = {
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutAccountsInput
   entries?: Prisma.LedgerEntryCreateNestedManyWithoutAccountInput
+  creditCard?: Prisma.CreditCardCreateNestedOneWithoutAccountInput
 }
 
 export type AccountUncheckedCreateInput = {
@@ -339,6 +343,7 @@ export type AccountUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   entries?: Prisma.LedgerEntryUncheckedCreateNestedManyWithoutAccountInput
+  creditCard?: Prisma.CreditCardUncheckedCreateNestedOneWithoutAccountInput
 }
 
 export type AccountUpdateInput = {
@@ -352,6 +357,7 @@ export type AccountUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutAccountsNestedInput
   entries?: Prisma.LedgerEntryUpdateManyWithoutAccountNestedInput
+  creditCard?: Prisma.CreditCardUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateInput = {
@@ -365,6 +371,7 @@ export type AccountUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entries?: Prisma.LedgerEntryUncheckedUpdateManyWithoutAccountNestedInput
+  creditCard?: Prisma.CreditCardUncheckedUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountCreateManyInput = {
@@ -523,6 +530,20 @@ export type DecimalFieldUpdateOperationsInput = {
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
+export type AccountCreateNestedOneWithoutCreditCardInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutCreditCardInput, Prisma.AccountUncheckedCreateWithoutCreditCardInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutCreditCardInput
+  connect?: Prisma.AccountWhereUniqueInput
+}
+
+export type AccountUpdateOneRequiredWithoutCreditCardNestedInput = {
+  create?: Prisma.XOR<Prisma.AccountCreateWithoutCreditCardInput, Prisma.AccountUncheckedCreateWithoutCreditCardInput>
+  connectOrCreate?: Prisma.AccountCreateOrConnectWithoutCreditCardInput
+  upsert?: Prisma.AccountUpsertWithoutCreditCardInput
+  connect?: Prisma.AccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AccountUpdateToOneWithWhereWithoutCreditCardInput, Prisma.AccountUpdateWithoutCreditCardInput>, Prisma.AccountUncheckedUpdateWithoutCreditCardInput>
+}
+
 export type AccountCreateNestedOneWithoutEntriesInput = {
   create?: Prisma.XOR<Prisma.AccountCreateWithoutEntriesInput, Prisma.AccountUncheckedCreateWithoutEntriesInput>
   connectOrCreate?: Prisma.AccountCreateOrConnectWithoutEntriesInput
@@ -547,6 +568,7 @@ export type AccountCreateWithoutWorkspaceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   entries?: Prisma.LedgerEntryCreateNestedManyWithoutAccountInput
+  creditCard?: Prisma.CreditCardCreateNestedOneWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutWorkspaceInput = {
@@ -559,6 +581,7 @@ export type AccountUncheckedCreateWithoutWorkspaceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   entries?: Prisma.LedgerEntryUncheckedCreateNestedManyWithoutAccountInput
+  creditCard?: Prisma.CreditCardUncheckedCreateNestedOneWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutWorkspaceInput = {
@@ -602,6 +625,74 @@ export type AccountScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Account"> | Date | string
 }
 
+export type AccountCreateWithoutCreditCardInput = {
+  id?: string
+  name: string
+  type: $Enums.AccountType
+  status?: $Enums.AccountStatus
+  currency?: $Enums.Currency
+  initialBalance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutAccountsInput
+  entries?: Prisma.LedgerEntryCreateNestedManyWithoutAccountInput
+}
+
+export type AccountUncheckedCreateWithoutCreditCardInput = {
+  id?: string
+  workspaceId: string
+  name: string
+  type: $Enums.AccountType
+  status?: $Enums.AccountStatus
+  currency?: $Enums.Currency
+  initialBalance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  entries?: Prisma.LedgerEntryUncheckedCreateNestedManyWithoutAccountInput
+}
+
+export type AccountCreateOrConnectWithoutCreditCardInput = {
+  where: Prisma.AccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.AccountCreateWithoutCreditCardInput, Prisma.AccountUncheckedCreateWithoutCreditCardInput>
+}
+
+export type AccountUpsertWithoutCreditCardInput = {
+  update: Prisma.XOR<Prisma.AccountUpdateWithoutCreditCardInput, Prisma.AccountUncheckedUpdateWithoutCreditCardInput>
+  create: Prisma.XOR<Prisma.AccountCreateWithoutCreditCardInput, Prisma.AccountUncheckedCreateWithoutCreditCardInput>
+  where?: Prisma.AccountWhereInput
+}
+
+export type AccountUpdateToOneWithWhereWithoutCreditCardInput = {
+  where?: Prisma.AccountWhereInput
+  data: Prisma.XOR<Prisma.AccountUpdateWithoutCreditCardInput, Prisma.AccountUncheckedUpdateWithoutCreditCardInput>
+}
+
+export type AccountUpdateWithoutCreditCardInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutAccountsNestedInput
+  entries?: Prisma.LedgerEntryUpdateManyWithoutAccountNestedInput
+}
+
+export type AccountUncheckedUpdateWithoutCreditCardInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+  status?: Prisma.EnumAccountStatusFieldUpdateOperationsInput | $Enums.AccountStatus
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
+  initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  entries?: Prisma.LedgerEntryUncheckedUpdateManyWithoutAccountNestedInput
+}
+
 export type AccountCreateWithoutEntriesInput = {
   id?: string
   name: string
@@ -612,6 +703,7 @@ export type AccountCreateWithoutEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutAccountsInput
+  creditCard?: Prisma.CreditCardCreateNestedOneWithoutAccountInput
 }
 
 export type AccountUncheckedCreateWithoutEntriesInput = {
@@ -624,6 +716,7 @@ export type AccountUncheckedCreateWithoutEntriesInput = {
   initialBalance?: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  creditCard?: Prisma.CreditCardUncheckedCreateNestedOneWithoutAccountInput
 }
 
 export type AccountCreateOrConnectWithoutEntriesInput = {
@@ -652,6 +745,7 @@ export type AccountUpdateWithoutEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutAccountsNestedInput
+  creditCard?: Prisma.CreditCardUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutEntriesInput = {
@@ -664,6 +758,7 @@ export type AccountUncheckedUpdateWithoutEntriesInput = {
   initialBalance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  creditCard?: Prisma.CreditCardUncheckedUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountCreateManyWorkspaceInput = {
@@ -687,6 +782,7 @@ export type AccountUpdateWithoutWorkspaceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entries?: Prisma.LedgerEntryUpdateManyWithoutAccountNestedInput
+  creditCard?: Prisma.CreditCardUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateWithoutWorkspaceInput = {
@@ -699,6 +795,7 @@ export type AccountUncheckedUpdateWithoutWorkspaceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   entries?: Prisma.LedgerEntryUncheckedUpdateManyWithoutAccountNestedInput
+  creditCard?: Prisma.CreditCardUncheckedUpdateOneWithoutAccountNestedInput
 }
 
 export type AccountUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -755,6 +852,7 @@ export type AccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updatedAt?: boolean
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   entries?: boolean | Prisma.Account$entriesArgs<ExtArgs>
+  creditCard?: boolean | Prisma.Account$creditCardArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["account"]>
 
@@ -800,6 +898,7 @@ export type AccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type AccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   entries?: boolean | Prisma.Account$entriesArgs<ExtArgs>
+  creditCard?: boolean | Prisma.Account$creditCardArgs<ExtArgs>
   _count?: boolean | Prisma.AccountCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -814,6 +913,7 @@ export type $AccountPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     workspace: Prisma.$WorkspacePayload<ExtArgs>
     entries: Prisma.$LedgerEntryPayload<ExtArgs>[]
+    creditCard: Prisma.$CreditCardPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1221,6 +1321,7 @@ export interface Prisma__AccountClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   entries<T extends Prisma.Account$entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LedgerEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  creditCard<T extends Prisma.Account$creditCardArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Account$creditCardArgs<ExtArgs>>): Prisma.Prisma__CreditCardClient<runtime.Types.Result.GetResult<Prisma.$CreditCardPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1681,6 +1782,25 @@ export type Account$entriesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.LedgerEntryScalarFieldEnum | Prisma.LedgerEntryScalarFieldEnum[]
+}
+
+/**
+ * Account.creditCard
+ */
+export type Account$creditCardArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CreditCard
+   */
+  select?: Prisma.CreditCardSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CreditCard
+   */
+  omit?: Prisma.CreditCardOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CreditCardInclude<ExtArgs> | null
+  where?: Prisma.CreditCardWhereInput
 }
 
 /**
