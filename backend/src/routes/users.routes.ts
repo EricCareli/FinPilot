@@ -1,12 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import { prisma } from '../lib/prisma.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
+import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 
 export async function usersRoutes(app: FastifyInstance): Promise<void> {
   app.get(
     '/users/me',
     {
-      preHandler: authenticate,
+      preHandler: [authenticate, workspaceMiddleware],
     },
     async (request, reply) => {
       const userId = request.user.sub;
@@ -33,6 +34,7 @@ export async function usersRoutes(app: FastifyInstance): Promise<void> {
       return {
         status: 'success',
         user,
+        workspace: request.workspace,
       };
     },
   );

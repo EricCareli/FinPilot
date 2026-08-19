@@ -1,14 +1,21 @@
-import '@fastify/jwt';
+import type { WorkspaceRole, Workspace } from '../generated/prisma/client.js';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: {
-      sub: string;
-      email: string;
-    };
     user: {
       sub: string;
       email: string;
+    };
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    workspace: {
+      id: string;
+      name: string;
+      type: Workspace['type'];
+      role: WorkspaceRole;
     };
   }
 }

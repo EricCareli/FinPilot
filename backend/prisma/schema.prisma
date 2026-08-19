@@ -7,9 +7,16 @@ datasource db {
   provider = "postgresql"
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
+enum WorkspaceType {
+  PERSONAL
+  BUSINESS
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  FINANCE
+  VIEWER
 }
 
 enum AccountType {
@@ -21,16 +28,34 @@ enum AccountType {
   OTHER
 }
 
-enum WorkspaceType {
-  PERSONAL
-  BUSINESS
+enum AccountStatus {
+  ACTIVE
+  ARCHIVED
 }
 
-enum WorkspaceRole {
-  OWNER
-  ADMIN
-  FINANCE
-  VIEWER
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  REFUND
+  ADJUSTMENT
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+}
+
+enum TransactionStatus {
+  PENDING
+  POSTED
+  VOIDED
+}
+
+enum Currency {
+  BRL
+  USD
+  EUR
 }
 
 model User {
@@ -56,7 +81,7 @@ model Workspace {
   members      WorkspaceMember[]
   accounts     Account[]
   categories   Category[]
-  transactions Transaction[]
+  transactions FinancialTransaction[]
   budgets      Budget[]
   goals        Goal[]
 
@@ -82,18 +107,21 @@ model WorkspaceMember {
 }
 
 model Account {
-  id          String      @id @default(uuid())
+  id          String        @id @default(uuid())
   workspaceId String
   name        String
   type        AccountType
-  balance     Decimal     @default(0) @db.Decimal(15, 2)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  status      AccountStatus @default(ACTIVE)
+  currency    Currency      @default(BRL)
+  initialBalance Decimal     @default(0) @db.Decimal(19, 4)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries   LedgerEntry[]
 
   @@index([workspaceId])
+  @@index([workspaceId, status])
   @@map("accounts")
 }
 
@@ -105,8 +133,8 @@ model Category {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
+  workspace    Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions FinancialTransaction[]
   budgets      Budget[]
 
   @@unique([workspaceId, name, type])
@@ -114,34 +142,48 @@ model Category {
   @@map("categories")
 }
 
-model Transaction {
-  id              String          @id @default(uuid())
+model FinancialTransaction {
+  id              String            @id @default(uuid())
   workspaceId     String
-  accountId       String
   categoryId      String?
   type            TransactionType
-  amount          Decimal         @db.Decimal(15, 2)
+  status          TransactionStatus @default(POSTED)
   description     String
   transactionDate DateTime
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  category  Category?  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  entries   LedgerEntry[]
 
   @@index([workspaceId])
-  @@index([accountId])
+  @@index([workspaceId, transactionDate])
   @@index([categoryId])
-  @@index([transactionDate])
-  @@map("transactions")
+  @@map("financial_transactions")
+}
+
+model LedgerEntry {
+  id            String          @id @default(uuid())
+  transactionId String
+  accountId     String
+  type          LedgerEntryType
+  amount        Decimal         @db.Decimal(19, 4)
+  createdAt     DateTime        @default(now())
+
+  transaction FinancialTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  account     Account             @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([transactionId])
+  @@index([accountId])
+  @@map("ledger_entries")
 }
 
 model Budget {
   id          String   @id @default(uuid())
   workspaceId String
   categoryId  String
-  amount      Decimal  @db.Decimal(15, 2)
+  amount      Decimal  @db.Decimal(19, 4)
   month       Int
   year        Int
   createdAt   DateTime @default(now())
@@ -160,8 +202,8 @@ model Goal {
   id            String    @id @default(uuid())
   workspaceId   String
   name          String
-  targetAmount  Decimal   @db.Decimal(15, 2)
-  currentAmount Decimal   @default(0) @db.Decimal(15, 2)
+  targetAmount  Decimal   @db.Decimal(19, 4)
+  currentAmount Decimal   @default(0) @db.Decimal(19, 4)
   deadline      DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
