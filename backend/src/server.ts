@@ -11,6 +11,8 @@ import { transactionsRoutes } from './routes/transactions.routes.js';
 import { AppError } from './errors/app-error.js';
 import { transfersRoutes } from './routes/transfers.routes.js';
 import { dashboardRoutes } from './routes/dashboard.routes.js';
+import { budgetsRoutes } from './routes/budgets.routes.js';
+import { goalsRoutes } from './routes/goals.routes.js';
 
 const PORT = Number(process.env.PORT) || 3333;
 
@@ -106,7 +108,9 @@ async function buildServer() {
   await transactionsRoutes(app);
   await transfersRoutes(app);
   await dashboardRoutes(app);
-
+  await budgetsRoutes(app);
+  await goalsRoutes(app);
+  
   return app;
 }
 
