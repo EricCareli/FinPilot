@@ -65,6 +65,19 @@ enum CreditCardInvoiceStatus {
   OVERDUE
 }
 
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum RecurringStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -85,12 +98,13 @@ model Workspace {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  members      WorkspaceMember[]
-  accounts     Account[]
-  categories   Category[]
-  transactions FinancialTransaction[]
-  budgets      Budget[]
-  goals        Goal[]
+  members               WorkspaceMember[]
+  accounts              Account[]
+  categories            Category[]
+  transactions          FinancialTransaction[]
+  budgets               Budget[]
+  goals                 Goal[]
+  recurringTransactions RecurringTransaction[]
 
   @@index([type])
   @@map("workspaces")
@@ -124,9 +138,10 @@ model Account {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  workspace  Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  entries    LedgerEntry[]
-  creditCard CreditCard?
+  workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries               LedgerEntry[]
+  creditCard            CreditCard?
+  recurringTransactions RecurringTransaction[]
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -176,9 +191,10 @@ model Category {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  workspace    Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  transactions FinancialTransaction[]
-  budgets      Budget[]
+  workspace             Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions          FinancialTransaction[]
+  budgets               Budget[]
+  recurringTransactions RecurringTransaction[]
 
   @@unique([workspaceId, name, type])
   @@index([workspaceId])
@@ -255,4 +271,32 @@ model Goal {
 
   @@index([workspaceId])
   @@map("goals")
+}
+
+model RecurringTransaction {
+  id          String             @id @default(uuid())
+  workspaceId String
+  accountId   String
+  categoryId  String?
+  type        TransactionType
+  amount      Decimal            @db.Decimal(19, 4)
+  description String
+  frequency   RecurringFrequency
+  startDate   DateTime
+  endDate     DateTime?
+  nextRunDate DateTime
+  status      RecurringStatus    @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([nextRunDate, status])
+  @@map("recurring_transactions")
 }

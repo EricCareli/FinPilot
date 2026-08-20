@@ -92,3 +92,22 @@ export const CreditCardInvoiceStatus = {
 } as const
 
 export type CreditCardInvoiceStatus = (typeof CreditCardInvoiceStatus)[keyof typeof CreditCardInvoiceStatus]
+
+
+export const RecurringFrequency = {
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
+} as const
+
+export type RecurringFrequency = (typeof RecurringFrequency)[keyof typeof RecurringFrequency]
+
+
+export const RecurringStatus = {
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type RecurringStatus = (typeof RecurringStatus)[keyof typeof RecurringStatus]

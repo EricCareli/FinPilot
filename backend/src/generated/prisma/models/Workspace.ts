@@ -188,6 +188,7 @@ export type WorkspaceWhereInput = {
   transactions?: Prisma.FinancialTransactionListRelationFilter
   budgets?: Prisma.BudgetListRelationFilter
   goals?: Prisma.GoalListRelationFilter
+  recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
 }
 
 export type WorkspaceOrderByWithRelationInput = {
@@ -202,6 +203,7 @@ export type WorkspaceOrderByWithRelationInput = {
   transactions?: Prisma.FinancialTransactionOrderByRelationAggregateInput
   budgets?: Prisma.BudgetOrderByRelationAggregateInput
   goals?: Prisma.GoalOrderByRelationAggregateInput
+  recurringTransactions?: Prisma.RecurringTransactionOrderByRelationAggregateInput
 }
 
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
@@ -219,6 +221,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   transactions?: Prisma.FinancialTransactionListRelationFilter
   budgets?: Prisma.BudgetListRelationFilter
   goals?: Prisma.GoalListRelationFilter
+  recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
 }, "id">
 
 export type WorkspaceOrderByWithAggregationInput = {
@@ -255,6 +258,7 @@ export type WorkspaceCreateInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateInput = {
@@ -269,6 +273,7 @@ export type WorkspaceUncheckedCreateInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUpdateInput = {
@@ -283,6 +288,7 @@ export type WorkspaceUpdateInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateInput = {
@@ -297,6 +303,7 @@ export type WorkspaceUncheckedUpdateInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateManyInput = {
@@ -440,6 +447,20 @@ export type WorkspaceUpdateOneRequiredWithoutGoalsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutGoalsInput, Prisma.WorkspaceUpdateWithoutGoalsInput>, Prisma.WorkspaceUncheckedUpdateWithoutGoalsInput>
 }
 
+export type WorkspaceCreateNestedOneWithoutRecurringTransactionsInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedCreateWithoutRecurringTransactionsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutRecurringTransactionsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutRecurringTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedCreateWithoutRecurringTransactionsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutRecurringTransactionsInput
+  upsert?: Prisma.WorkspaceUpsertWithoutRecurringTransactionsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutRecurringTransactionsInput, Prisma.WorkspaceUpdateWithoutRecurringTransactionsInput>, Prisma.WorkspaceUncheckedUpdateWithoutRecurringTransactionsInput>
+}
+
 export type WorkspaceCreateWithoutMembersInput = {
   id?: string
   name: string
@@ -451,6 +472,7 @@ export type WorkspaceCreateWithoutMembersInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutMembersInput = {
@@ -464,6 +486,7 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutMembersInput = {
@@ -493,6 +516,7 @@ export type WorkspaceUpdateWithoutMembersInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutMembersInput = {
@@ -506,6 +530,7 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutAccountsInput = {
@@ -519,6 +544,7 @@ export type WorkspaceCreateWithoutAccountsInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutAccountsInput = {
@@ -532,6 +558,7 @@ export type WorkspaceUncheckedCreateWithoutAccountsInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutAccountsInput = {
@@ -561,6 +588,7 @@ export type WorkspaceUpdateWithoutAccountsInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutAccountsInput = {
@@ -574,6 +602,7 @@ export type WorkspaceUncheckedUpdateWithoutAccountsInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutCategoriesInput = {
@@ -587,6 +616,7 @@ export type WorkspaceCreateWithoutCategoriesInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutCategoriesInput = {
@@ -600,6 +630,7 @@ export type WorkspaceUncheckedCreateWithoutCategoriesInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutCategoriesInput = {
@@ -629,6 +660,7 @@ export type WorkspaceUpdateWithoutCategoriesInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutCategoriesInput = {
@@ -642,6 +674,7 @@ export type WorkspaceUncheckedUpdateWithoutCategoriesInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutTransactionsInput = {
@@ -655,6 +688,7 @@ export type WorkspaceCreateWithoutTransactionsInput = {
   categories?: Prisma.CategoryCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutTransactionsInput = {
@@ -668,6 +702,7 @@ export type WorkspaceUncheckedCreateWithoutTransactionsInput = {
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutTransactionsInput = {
@@ -697,6 +732,7 @@ export type WorkspaceUpdateWithoutTransactionsInput = {
   categories?: Prisma.CategoryUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutTransactionsInput = {
@@ -710,6 +746,7 @@ export type WorkspaceUncheckedUpdateWithoutTransactionsInput = {
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutBudgetsInput = {
@@ -723,6 +760,7 @@ export type WorkspaceCreateWithoutBudgetsInput = {
   categories?: Prisma.CategoryCreateNestedManyWithoutWorkspaceInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutBudgetsInput = {
@@ -736,6 +774,7 @@ export type WorkspaceUncheckedCreateWithoutBudgetsInput = {
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutWorkspaceInput
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutBudgetsInput = {
@@ -765,6 +804,7 @@ export type WorkspaceUpdateWithoutBudgetsInput = {
   categories?: Prisma.CategoryUpdateManyWithoutWorkspaceNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutBudgetsInput = {
@@ -778,6 +818,7 @@ export type WorkspaceUncheckedUpdateWithoutBudgetsInput = {
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutWorkspaceNestedInput
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutGoalsInput = {
@@ -791,6 +832,7 @@ export type WorkspaceCreateWithoutGoalsInput = {
   categories?: Prisma.CategoryCreateNestedManyWithoutWorkspaceInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutGoalsInput = {
@@ -804,6 +846,7 @@ export type WorkspaceUncheckedCreateWithoutGoalsInput = {
   categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutWorkspaceInput
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutGoalsInput = {
@@ -833,6 +876,7 @@ export type WorkspaceUpdateWithoutGoalsInput = {
   categories?: Prisma.CategoryUpdateManyWithoutWorkspaceNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutGoalsInput = {
@@ -846,6 +890,79 @@ export type WorkspaceUncheckedUpdateWithoutGoalsInput = {
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutWorkspaceNestedInput
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutRecurringTransactionsInput = {
+  id?: string
+  name: string
+  type: $Enums.WorkspaceType
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutWorkspaceInput
+  categories?: Prisma.CategoryCreateNestedManyWithoutWorkspaceInput
+  transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutWorkspaceInput
+  budgets?: Prisma.BudgetCreateNestedManyWithoutWorkspaceInput
+  goals?: Prisma.GoalCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutRecurringTransactionsInput = {
+  id?: string
+  name: string
+  type: $Enums.WorkspaceType
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutWorkspaceInput
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutWorkspaceInput
+  transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutWorkspaceInput
+  budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutWorkspaceInput
+  goals?: Prisma.GoalUncheckedCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutRecurringTransactionsInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedCreateWithoutRecurringTransactionsInput>
+}
+
+export type WorkspaceUpsertWithoutRecurringTransactionsInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedUpdateWithoutRecurringTransactionsInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedCreateWithoutRecurringTransactionsInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutRecurringTransactionsInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutRecurringTransactionsInput, Prisma.WorkspaceUncheckedUpdateWithoutRecurringTransactionsInput>
+}
+
+export type WorkspaceUpdateWithoutRecurringTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutWorkspaceNestedInput
+  categories?: Prisma.CategoryUpdateManyWithoutWorkspaceNestedInput
+  transactions?: Prisma.FinancialTransactionUpdateManyWithoutWorkspaceNestedInput
+  budgets?: Prisma.BudgetUpdateManyWithoutWorkspaceNestedInput
+  goals?: Prisma.GoalUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutRecurringTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumWorkspaceTypeFieldUpdateOperationsInput | $Enums.WorkspaceType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutWorkspaceNestedInput
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutWorkspaceNestedInput
+  transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput
+  budgets?: Prisma.BudgetUncheckedUpdateManyWithoutWorkspaceNestedInput
+  goals?: Prisma.GoalUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 
@@ -860,6 +977,7 @@ export type WorkspaceCountOutputType = {
   transactions: number
   budgets: number
   goals: number
+  recurringTransactions: number
 }
 
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -869,6 +987,7 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   transactions?: boolean | WorkspaceCountOutputTypeCountTransactionsArgs
   budgets?: boolean | WorkspaceCountOutputTypeCountBudgetsArgs
   goals?: boolean | WorkspaceCountOutputTypeCountGoalsArgs
+  recurringTransactions?: boolean | WorkspaceCountOutputTypeCountRecurringTransactionsArgs
 }
 
 /**
@@ -923,6 +1042,13 @@ export type WorkspaceCountOutputTypeCountGoalsArgs<ExtArgs extends runtime.Types
   where?: Prisma.GoalWhereInput
 }
 
+/**
+ * WorkspaceCountOutputType without action
+ */
+export type WorkspaceCountOutputTypeCountRecurringTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RecurringTransactionWhereInput
+}
+
 
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -936,6 +1062,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   transactions?: boolean | Prisma.Workspace$transactionsArgs<ExtArgs>
   budgets?: boolean | Prisma.Workspace$budgetsArgs<ExtArgs>
   goals?: boolean | Prisma.Workspace$goalsArgs<ExtArgs>
+  recurringTransactions?: boolean | Prisma.Workspace$recurringTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -971,6 +1098,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   transactions?: boolean | Prisma.Workspace$transactionsArgs<ExtArgs>
   budgets?: boolean | Prisma.Workspace$budgetsArgs<ExtArgs>
   goals?: boolean | Prisma.Workspace$goalsArgs<ExtArgs>
+  recurringTransactions?: boolean | Prisma.Workspace$recurringTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -985,6 +1113,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     transactions: Prisma.$FinancialTransactionPayload<ExtArgs>[]
     budgets: Prisma.$BudgetPayload<ExtArgs>[]
     goals: Prisma.$GoalPayload<ExtArgs>[]
+    recurringTransactions: Prisma.$RecurringTransactionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1392,6 +1521,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
   transactions<T extends Prisma.Workspace$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FinancialTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   budgets<T extends Prisma.Workspace$budgetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   goals<T extends Prisma.Workspace$goalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$goalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  recurringTransactions<T extends Prisma.Workspace$recurringTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$recurringTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecurringTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1960,6 +2090,30 @@ export type Workspace$goalsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.GoalScalarFieldEnum | Prisma.GoalScalarFieldEnum[]
+}
+
+/**
+ * Workspace.recurringTransactions
+ */
+export type Workspace$recurringTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RecurringTransaction
+   */
+  select?: Prisma.RecurringTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RecurringTransaction
+   */
+  omit?: Prisma.RecurringTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RecurringTransactionInclude<ExtArgs> | null
+  where?: Prisma.RecurringTransactionWhereInput
+  orderBy?: Prisma.RecurringTransactionOrderByWithRelationInput | Prisma.RecurringTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.RecurringTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RecurringTransactionScalarFieldEnum | Prisma.RecurringTransactionScalarFieldEnum[]
 }
 
 /**

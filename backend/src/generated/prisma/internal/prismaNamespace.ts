@@ -407,7 +407,8 @@ export const ModelName = {
   FinancialTransaction: 'FinancialTransaction',
   LedgerEntry: 'LedgerEntry',
   Budget: 'Budget',
-  Goal: 'Goal'
+  Goal: 'Goal',
+  RecurringTransaction: 'RecurringTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "account" | "creditCard" | "creditCardInvoice" | "category" | "financialTransaction" | "ledgerEntry" | "budget" | "goal"
+    modelProps: "user" | "workspace" | "workspaceMember" | "account" | "creditCard" | "creditCardInvoice" | "category" | "financialTransaction" | "ledgerEntry" | "budget" | "goal" | "recurringTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1241,6 +1242,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RecurringTransaction: {
+      payload: Prisma.$RecurringTransactionPayload<ExtArgs>
+      fields: Prisma.RecurringTransactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RecurringTransactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RecurringTransactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        findFirst: {
+          args: Prisma.RecurringTransactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RecurringTransactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        findMany: {
+          args: Prisma.RecurringTransactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>[]
+        }
+        create: {
+          args: Prisma.RecurringTransactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        createMany: {
+          args: Prisma.RecurringTransactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RecurringTransactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>[]
+        }
+        delete: {
+          args: Prisma.RecurringTransactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        update: {
+          args: Prisma.RecurringTransactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.RecurringTransactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RecurringTransactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RecurringTransactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.RecurringTransactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RecurringTransactionPayload>
+        }
+        aggregate: {
+          args: Prisma.RecurringTransactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRecurringTransaction>
+        }
+        groupBy: {
+          args: Prisma.RecurringTransactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RecurringTransactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RecurringTransactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RecurringTransactionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1424,6 +1499,26 @@ export const GoalScalarFieldEnum = {
 } as const
 
 export type GoalScalarFieldEnum = (typeof GoalScalarFieldEnum)[keyof typeof GoalScalarFieldEnum]
+
+
+export const RecurringTransactionScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  accountId: 'accountId',
+  categoryId: 'categoryId',
+  type: 'type',
+  amount: 'amount',
+  description: 'description',
+  frequency: 'frequency',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  nextRunDate: 'nextRunDate',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RecurringTransactionScalarFieldEnum = (typeof RecurringTransactionScalarFieldEnum)[keyof typeof RecurringTransactionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1639,6 +1734,34 @@ export type ListEnumLedgerEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
+ * Reference to a field of type 'RecurringFrequency'
+ */
+export type EnumRecurringFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringFrequency'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurringFrequency[]'
+ */
+export type ListEnumRecurringFrequencyFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringFrequency[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurringStatus'
+ */
+export type EnumRecurringStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RecurringStatus[]'
+ */
+export type ListEnumRecurringStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecurringStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1813,6 +1936,7 @@ export type GlobalOmitConfig = {
   ledgerEntry?: Prisma.LedgerEntryOmit
   budget?: Prisma.BudgetOmit
   goal?: Prisma.GoalOmit
+  recurringTransaction?: Prisma.RecurringTransactionOmit
 }
 
 /* Types for Logging */

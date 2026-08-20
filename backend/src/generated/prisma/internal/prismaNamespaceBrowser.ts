@@ -61,7 +61,8 @@ export const ModelName = {
   FinancialTransaction: 'FinancialTransaction',
   LedgerEntry: 'LedgerEntry',
   Budget: 'Budget',
-  Goal: 'Goal'
+  Goal: 'Goal',
+  RecurringTransaction: 'RecurringTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -224,6 +225,26 @@ export const GoalScalarFieldEnum = {
 } as const
 
 export type GoalScalarFieldEnum = (typeof GoalScalarFieldEnum)[keyof typeof GoalScalarFieldEnum]
+
+
+export const RecurringTransactionScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  accountId: 'accountId',
+  categoryId: 'categoryId',
+  type: 'type',
+  amount: 'amount',
+  description: 'description',
+  frequency: 'frequency',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  nextRunDate: 'nextRunDate',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RecurringTransactionScalarFieldEnum = (typeof RecurringTransactionScalarFieldEnum)[keyof typeof RecurringTransactionScalarFieldEnum]
 
 
 export const SortOrder = {

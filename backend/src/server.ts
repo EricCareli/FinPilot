@@ -8,12 +8,14 @@ import { usersRoutes } from './routes/users.routes.js';
 import { accountsRoutes } from './routes/accounts.routes.js';
 import { categoriesRoutes } from './routes/categories.routes.js';
 import { transactionsRoutes } from './routes/transactions.routes.js';
-import { AppError } from './errors/app-error.js';
 import { transfersRoutes } from './routes/transfers.routes.js';
 import { dashboardRoutes } from './routes/dashboard.routes.js';
 import { budgetsRoutes } from './routes/budgets.routes.js';
 import { goalsRoutes } from './routes/goals.routes.js';
 import { creditCardsRoutes } from './routes/credit-cards.routes.js';
+import { recurringTransactionsRoutes } from './routes/recurring-transactions.routes.js';
+
+import { AppError } from './errors/app-error.js';
 
 const PORT = Number(process.env.PORT) || 3333;
 
@@ -76,11 +78,14 @@ async function buildServer() {
         fastifyError.statusCode >= 400 &&
         fastifyError.statusCode < 500
       ) {
-        return reply.status(fastifyError.statusCode).send({
-          status: 'error',
-          message:
-            fastifyError.message ?? 'Request error',
-        });
+        return reply
+          .status(fastifyError.statusCode)
+          .send({
+            status: 'error',
+            message:
+              fastifyError.message ??
+              'Request error',
+          });
       }
     }
 
@@ -112,7 +117,8 @@ async function buildServer() {
   await budgetsRoutes(app);
   await goalsRoutes(app);
   await creditCardsRoutes(app);
-  
+  await recurringTransactionsRoutes(app);
+
   return app;
 }
 
