@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 import { requireWorkspaceRoles } from '../middlewares/permission.middleware.js';
+
 import { createTransfer } from '../services/transfer.service.js';
 
 export async function transfersRoutes(
@@ -13,7 +15,11 @@ export async function transfersRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles('OWNER', 'ADMIN', 'FINANCE'),
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
       ],
     },
     async (request, reply) => {
@@ -45,14 +51,19 @@ export async function transfersRoutes(
         });
       }
 
-      if (!Number.isFinite(amount) || amount <= 0) {
+      if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Amount must be greater than zero',
+          message:
+            'Amount must be greater than zero',
         });
       }
 
-      const normalizedDescription = description.trim();
+      const normalizedDescription =
+        description.trim();
 
       if (normalizedDescription.length < 2) {
         return reply.status(400).send({
@@ -62,12 +73,15 @@ export async function transfersRoutes(
         });
       }
 
-      const parsedDate = new Date(transactionDate);
+      const parsedDate = new Date(
+        transactionDate,
+      );
 
       if (Number.isNaN(parsedDate.getTime())) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid transaction date',
+          message:
+            'Invalid transaction date',
         });
       }
 
@@ -86,72 +100,32 @@ export async function transfersRoutes(
           transfer,
         });
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Source and destination accounts must be different'
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
+        if (!(error instanceof Error)) {
+          throw error;
         }
 
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Transfer amount must be greater than zero'
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
+        switch (error.message) {
+          case 'Source and destination accounts must be different':
+          case 'Transfer amount must be greater than zero':
+          case 'Description is required':
+          case 'Invalid transaction date':
+          case 'Source and destination accounts must use the same currency':
+          case 'Insufficient funds':
+            return reply.status(400).send({
+              status: 'error',
+              message: error.message,
+            });
 
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Source account not found'
-        ) {
-          return reply.status(404).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
+          case 'Source account not found':
+          case 'Destination account not found':
+            return reply.status(404).send({
+              status: 'error',
+              message: error.message,
+            });
 
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Destination account not found'
-        ) {
-          return reply.status(404).send({
-            status: 'error',
-            message: error.message,
-          });
+          default:
+            throw error;
         }
-
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Source and destination accounts must use the same currency'
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        if (
-          error instanceof Error &&
-          error.message === 'Insufficient funds'
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        throw error;
       }
     },
   );

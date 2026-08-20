@@ -22,33 +22,52 @@ export async function createTransfer(
     );
   }
 
-  if (!Number.isFinite(input.amount) || input.amount <= 0) {
-    throw new Error('Transfer amount must be greater than zero');
+  if (
+    !Number.isFinite(input.amount) ||
+    input.amount <= 0
+  ) {
+    throw new Error(
+      'Transfer amount must be greater than zero',
+    );
+  }
+
+  if (!input.description.trim()) {
+    throw new Error('Description is required');
+  }
+
+  if (
+    Number.isNaN(input.transactionDate.getTime())
+  ) {
+    throw new Error('Invalid transaction date');
   }
 
   return prisma.$transaction(async (tx) => {
-    const sourceAccount = await tx.account.findFirst({
-      where: {
-        id: input.sourceAccountId,
-        workspaceId: input.workspaceId,
-        status: 'ACTIVE',
-      },
-    });
+    const sourceAccount =
+      await tx.account.findFirst({
+        where: {
+          id: input.sourceAccountId,
+          workspaceId: input.workspaceId,
+          status: 'ACTIVE',
+        },
+      });
 
     if (!sourceAccount) {
       throw new Error('Source account not found');
     }
 
-    const destinationAccount = await tx.account.findFirst({
-      where: {
-        id: input.destinationAccountId,
-        workspaceId: input.workspaceId,
-        status: 'ACTIVE',
-      },
-    });
+    const destinationAccount =
+      await tx.account.findFirst({
+        where: {
+          id: input.destinationAccountId,
+          workspaceId: input.workspaceId,
+          status: 'ACTIVE',
+        },
+      });
 
     if (!destinationAccount) {
-      throw new Error('Destination account not found');
+      throw new Error(
+        'Destination account not found',
+      );
     }
 
     if (
@@ -60,29 +79,36 @@ export async function createTransfer(
       );
     }
 
-    const amount = new Prisma.Decimal(input.amount);
+    const amount = new Prisma.Decimal(
+      input.amount,
+    );
 
-    const entries = await tx.ledgerEntry.findMany({
-      where: {
-        accountId: sourceAccount.id,
-        transaction: {
-          workspaceId: input.workspaceId,
-          status: 'POSTED',
+    const entries =
+      await tx.ledgerEntry.findMany({
+        where: {
+          accountId: sourceAccount.id,
+          transaction: {
+            workspaceId: input.workspaceId,
+            status: 'POSTED',
+          },
         },
-      },
-      select: {
-        type: true,
-        amount: true,
-      },
-    });
+        select: {
+          type: true,
+          amount: true,
+        },
+      });
 
-    let sourceBalance = new Prisma.Decimal(0);
+    let sourceBalance = new Prisma.Decimal(
+      sourceAccount.initialBalance,
+    );
 
     for (const entry of entries) {
       if (entry.type === 'CREDIT') {
-        sourceBalance = sourceBalance.plus(entry.amount);
+        sourceBalance =
+          sourceBalance.plus(entry.amount);
       } else {
-        sourceBalance = sourceBalance.minus(entry.amount);
+        sourceBalance =
+          sourceBalance.minus(entry.amount);
       }
     }
 
@@ -97,7 +123,7 @@ export async function createTransfer(
           categoryId: null,
           type: 'TRANSFER',
           status: 'POSTED',
-          description: input.description,
+          description: input.description.trim(),
           transactionDate: input.transactionDate,
         },
       });
@@ -119,6 +145,12 @@ export async function createTransfer(
       ],
     });
 
-    return transaction;
+    return {
+      transaction,
+      amount,
+      sourceAccountId: sourceAccount.id,
+      destinationAccountId:
+        destinationAccount.id,
+    };
   });
 }
