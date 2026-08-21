@@ -17,7 +17,11 @@ export async function budgetsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles('OWNER', 'ADMIN', 'FINANCE'),
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
       ],
     },
     async (request, reply) => {
@@ -63,13 +67,18 @@ export async function budgetsRoutes(
         if (
           error instanceof Error &&
           (
-            error.message === 'Category not found' ||
+            error.message ===
+              'Category not found' ||
             error.message ===
               'Budget category must be an expense category' ||
             error.message ===
               'Budget amount must be greater than zero' ||
-            error.message === 'Invalid month' ||
-            error.message === 'Invalid year'
+            error.message ===
+              'Month must be an integer between 1 and 12' ||
+            error.message ===
+              'Year must be a valid integer greater than or equal to 2000' ||
+            error.message ===
+              'Budget already exists for this category and period'
           )
         ) {
           return reply.status(400).send({
@@ -101,10 +110,14 @@ export async function budgetsRoutes(
       };
 
       const parsedMonth =
-        month !== undefined ? Number(month) : undefined;
+        month !== undefined
+          ? Number(month)
+          : undefined;
 
       const parsedYear =
-        year !== undefined ? Number(year) : undefined;
+        year !== undefined
+          ? Number(year)
+          : undefined;
 
       if (
         parsedMonth !== undefined &&
@@ -114,7 +127,8 @@ export async function budgetsRoutes(
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid month',
+          message:
+            'Month must be an integer between 1 and 12',
         });
       }
 
@@ -125,20 +139,55 @@ export async function budgetsRoutes(
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid year',
+          message:
+            'Year must be a valid integer greater than or equal to 2000',
         });
       }
 
-      const budgets = await listBudgets(
-        request.workspace.id,
-        parsedMonth,
-        parsedYear,
-      );
+      if (
+        (parsedMonth !== undefined &&
+          parsedYear === undefined) ||
+        (parsedMonth === undefined &&
+          parsedYear !== undefined)
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Month and year must be provided together',
+        });
+      }
 
-      return reply.status(200).send({
-        status: 'success',
-        budgets,
-      });
+      try {
+        const budgets = await listBudgets(
+          request.workspace.id,
+          parsedMonth,
+          parsedYear,
+        );
+
+        return reply.status(200).send({
+          status: 'success',
+          budgets,
+        });
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          (
+            error.message ===
+              'Month must be an integer between 1 and 12' ||
+            error.message ===
+              'Year must be a valid integer greater than or equal to 2000' ||
+            error.message ===
+              'Month and year must be provided together'
+          )
+        ) {
+          return reply.status(400).send({
+            status: 'error',
+            message: error.message,
+          });
+        }
+
+        throw error;
+      }
     },
   );
 
@@ -151,15 +200,17 @@ export async function budgetsRoutes(
       ],
     },
     async (request, reply) => {
-      const { budgetId } = request.params as {
-        budgetId: string;
-      };
+      const { budgetId } =
+        request.params as {
+          budgetId: string;
+        };
 
       try {
-        const progress = await getBudgetProgress(
-          request.workspace.id,
-          budgetId,
-        );
+        const progress =
+          await getBudgetProgress(
+            request.workspace.id,
+            budgetId,
+          );
 
         return reply.status(200).send({
           status: 'success',
@@ -168,7 +219,8 @@ export async function budgetsRoutes(
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message === 'Budget not found'
+          error.message ===
+            'Budget not found'
         ) {
           return reply.status(404).send({
             status: 'error',
