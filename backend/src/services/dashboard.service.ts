@@ -13,7 +13,10 @@ export async function getDashboard(
   const hasMonth = period.month !== undefined;
   const hasYear = period.year !== undefined;
 
-  if (hasMonth && (period.month! < 1 || period.month! > 12)) {
+  if (
+    hasMonth &&
+    (period.month! < 1 || period.month! > 12)
+  ) {
     throw new Error('Month must be between 1 and 12');
   }
 
@@ -25,7 +28,9 @@ export async function getDashboard(
   }
 
   if (hasMonth !== hasYear) {
-    throw new Error('Month and year must be provided together');
+    throw new Error(
+      'Month and year must be provided together',
+    );
   }
 
   let periodStart: Date | undefined;
@@ -33,11 +38,19 @@ export async function getDashboard(
 
   if (hasMonth && hasYear) {
     periodStart = new Date(
-      Date.UTC(period.year!, period.month! - 1, 1),
+      Date.UTC(
+        period.year!,
+        period.month! - 1,
+        1,
+      ),
     );
 
     periodEnd = new Date(
-      Date.UTC(period.year!, period.month!, 1),
+      Date.UTC(
+        period.year!,
+        period.month!,
+        1,
+      ),
     );
   }
 
@@ -92,7 +105,8 @@ export async function getDashboard(
       }
 
       if (account.type !== 'CREDIT_CARD') {
-        totalBalance = totalBalance.plus(balance);
+        totalBalance =
+          totalBalance.plus(balance);
       }
 
       return {
@@ -148,21 +162,82 @@ export async function getDashboard(
   let totalIncome = new Prisma.Decimal(0);
   let totalExpense = new Prisma.Decimal(0);
 
-  for (const transaction of financialTransactions) {
-    for (const entry of transaction.entries) {
-      if (transaction.type === 'INCOME') {
-        totalIncome = totalIncome.plus(
-          entry.amount,
-        );
-      }
+  const expenseByCategoryMap = new Map<
+    string,
+    {
+      categoryId: string | null;
+      categoryName: string;
+      amount: Prisma.Decimal;
+    }
+  >();
 
-      if (transaction.type === 'EXPENSE') {
-        totalExpense = totalExpense.plus(
-          entry.amount,
-        );
+  for (const transaction of financialTransactions) {
+    let transactionAmount =
+      new Prisma.Decimal(0);
+
+    for (const entry of transaction.entries) {
+      transactionAmount =
+        transactionAmount.plus(entry.amount);
+    }
+
+    if (transaction.type === 'INCOME') {
+      totalIncome =
+        totalIncome.plus(transactionAmount);
+    }
+
+    if (transaction.type === 'EXPENSE') {
+      totalExpense =
+        totalExpense.plus(transactionAmount);
+
+      const categoryId =
+        transaction.category?.id ?? null;
+
+      const categoryName =
+        transaction.category?.name ??
+        'Sem categoria';
+
+      const mapKey =
+        categoryId ?? 'uncategorized';
+
+      const existing =
+        expenseByCategoryMap.get(mapKey);
+
+      if (existing) {
+        existing.amount =
+          existing.amount.plus(
+            transactionAmount,
+          );
+      } else {
+        expenseByCategoryMap.set(mapKey, {
+          categoryId,
+          categoryName,
+          amount: transactionAmount,
+        });
       }
     }
   }
+
+  const expenseByCategory = Array.from(
+    expenseByCategoryMap.values(),
+  )
+    .sort((a, b) =>
+      b.amount.comparedTo(a.amount),
+    )
+    .map((category) => {
+      const percentage =
+        totalExpense.isZero()
+          ? new Prisma.Decimal(0)
+          : category.amount
+              .mul(100)
+              .div(totalExpense);
+
+      return {
+        categoryId: category.categoryId,
+        categoryName: category.categoryName,
+        amount: category.amount,
+        percentage,
+      };
+    });
 
   let totalCreditLimit = new Prisma.Decimal(0);
   let totalCreditUsed = new Prisma.Decimal(0);
@@ -182,15 +257,15 @@ export async function getDashboard(
 
       for (const entry of account.entries) {
         if (entry.type === 'DEBIT') {
-          usedLimit = usedLimit.plus(
-            entry.amount,
-          );
+          usedLimit =
+            usedLimit.plus(entry.amount);
         }
       }
 
-      const creditLimit = new Prisma.Decimal(
-        creditCard.creditLimit,
-      );
+      const creditLimit =
+        new Prisma.Decimal(
+          creditCard.creditLimit,
+        );
 
       const availableLimit =
         creditLimit.minus(usedLimit);
@@ -261,22 +336,24 @@ export async function getDashboard(
       take: 10,
     });
 
-  const netResult = totalIncome.minus(
-    totalExpense,
-  );
+  const netResult =
+    totalIncome.minus(totalExpense);
 
   return {
-    period: hasMonth && hasYear
-      ? {
-          month: period.month,
-          year: period.year,
-        }
-      : null,
+    period:
+      hasMonth && hasYear
+        ? {
+            month: period.month,
+            year: period.year,
+          }
+        : null,
 
     totalBalance,
     totalIncome,
     totalExpense,
     netResult,
+
+    expenseByCategory,
 
     accountCount: accounts.length,
     accounts: accountBalances,
