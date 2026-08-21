@@ -371,6 +371,145 @@ export async function getDashboard(
       ),
     }));
 
+  const netResult =
+    totalIncome.minus(totalExpense);
+
+  let savingsRate: Prisma.Decimal | null = null;
+
+  if (!totalIncome.isZero()) {
+    savingsRate = netResult
+      .mul(100)
+      .div(totalIncome);
+  }
+
+  let previousMonth:
+    | {
+        month: number;
+        year: number;
+        income: Prisma.Decimal;
+        expense: Prisma.Decimal;
+        netResult: Prisma.Decimal;
+      }
+    | null = null;
+
+  let comparison:
+    | {
+        incomeChange: Prisma.Decimal | null;
+        expenseChange: Prisma.Decimal | null;
+        netResultChange: Prisma.Decimal | null;
+      }
+    | null = null;
+
+  if (hasMonth && hasYear) {
+    const previousMonthDate = new Date(
+      Date.UTC(
+        period.year!,
+        period.month! - 2,
+        1,
+      ),
+    );
+
+    const previousMonthEnd = new Date(
+      Date.UTC(
+        period.year!,
+        period.month! - 1,
+        1,
+      ),
+    );
+
+    const previousMonthTransactions =
+      await prisma.financialTransaction.findMany({
+        where: {
+          workspaceId,
+          status: 'POSTED',
+          type: {
+            in: ['INCOME', 'EXPENSE'],
+          },
+          transactionDate: {
+            gte: previousMonthDate,
+            lt: previousMonthEnd,
+          },
+        },
+        select: {
+          type: true,
+          entries: {
+            select: {
+              amount: true,
+            },
+          },
+        },
+      });
+
+    let previousIncome =
+      new Prisma.Decimal(0);
+
+    let previousExpense =
+      new Prisma.Decimal(0);
+
+    for (
+      const transaction of previousMonthTransactions
+    ) {
+      let amount =
+        new Prisma.Decimal(0);
+
+      for (const entry of transaction.entries) {
+        amount = amount.plus(entry.amount);
+      }
+
+      if (transaction.type === 'INCOME') {
+        previousIncome =
+          previousIncome.plus(amount);
+      }
+
+      if (transaction.type === 'EXPENSE') {
+        previousExpense =
+          previousExpense.plus(amount);
+      }
+    }
+
+    const previousNetResult =
+      previousIncome.minus(previousExpense);
+
+    previousMonth = {
+      month:
+        previousMonthDate.getUTCMonth() + 1,
+      year:
+        previousMonthDate.getUTCFullYear(),
+      income: previousIncome,
+      expense: previousExpense,
+      netResult: previousNetResult,
+    };
+
+    const calculateChange = (
+      current: Prisma.Decimal,
+      previous: Prisma.Decimal,
+    ): Prisma.Decimal | null => {
+      if (previous.isZero()) {
+        return null;
+      }
+
+      return current
+        .minus(previous)
+        .mul(100)
+        .div(previous);
+    };
+
+    comparison = {
+      incomeChange: calculateChange(
+        totalIncome,
+        previousIncome,
+      ),
+      expenseChange: calculateChange(
+        totalExpense,
+        previousExpense,
+      ),
+      netResultChange: calculateChange(
+        netResult,
+        previousNetResult,
+      ),
+    };
+  }
+
   let totalCreditLimit = new Prisma.Decimal(0);
   let totalCreditUsed = new Prisma.Decimal(0);
   let totalCreditAvailable =
@@ -468,9 +607,6 @@ export async function getDashboard(
       take: 10,
     });
 
-  const netResult =
-    totalIncome.minus(totalExpense);
-
   return {
     period:
       hasMonth && hasYear
@@ -484,6 +620,12 @@ export async function getDashboard(
     totalIncome,
     totalExpense,
     netResult,
+
+    savingsRate,
+
+    previousMonth,
+
+    comparison,
 
     expenseByCategory,
 
