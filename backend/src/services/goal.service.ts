@@ -8,6 +8,12 @@ export interface CreateGoalInput {
   deadline?: Date;
 }
 
+export interface UpdateGoalAmountInput {
+  workspaceId: string;
+  goalId: string;
+  currentAmount: number;
+}
+
 export async function createGoal(
   input: CreateGoalInput,
 ) {
@@ -54,9 +60,14 @@ export async function listGoals(
     where: {
       workspaceId,
     },
-    orderBy: {
-      createdAt: 'desc',
-    },
+    orderBy: [
+      {
+        deadline: 'asc',
+      },
+      {
+        createdAt: 'desc',
+      },
+    ],
   });
 }
 
@@ -83,7 +94,9 @@ export async function getGoalProgress(
     goal.currentAmount,
   );
 
-  const remaining = targetAmount.minus(currentAmount);
+  const remaining = targetAmount.minus(
+    currentAmount,
+  );
 
   const percentage = targetAmount.isZero()
     ? new Prisma.Decimal(0)
@@ -91,9 +104,51 @@ export async function getGoalProgress(
         .div(targetAmount)
         .mul(100);
 
+  const completed =
+    currentAmount.greaterThanOrEqualTo(
+      targetAmount,
+    );
+
   return {
     goal,
-    remaining,
+    remaining:
+      remaining.isNegative()
+        ? new Prisma.Decimal(0)
+        : remaining,
     percentage,
+    completed,
   };
+}
+
+export async function updateGoalAmount(
+  input: UpdateGoalAmountInput,
+) {
+  if (
+    !Number.isFinite(input.currentAmount) ||
+    input.currentAmount < 0
+  ) {
+    throw new Error(
+      'Current amount must be greater than or equal to zero',
+    );
+  }
+
+  const goal = await prisma.goal.findFirst({
+    where: {
+      id: input.goalId,
+      workspaceId: input.workspaceId,
+    },
+  });
+
+  if (!goal) {
+    throw new Error('Goal not found');
+  }
+
+  return prisma.goal.update({
+    where: {
+      id: goal.id,
+    },
+    data: {
+      currentAmount: input.currentAmount,
+    },
+  });
 }

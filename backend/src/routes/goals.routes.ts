@@ -6,6 +6,7 @@ import {
   createGoal,
   listGoals,
   getGoalProgress,
+  updateGoalAmount,
 } from '../services/goal.service.js';
 
 export async function goalsRoutes(
@@ -17,7 +18,11 @@ export async function goalsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles('OWNER', 'ADMIN', 'FINANCE'),
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
       ],
     },
     async (request, reply) => {
@@ -42,12 +47,19 @@ export async function goalsRoutes(
         });
       }
 
-      let parsedDeadline: Date | undefined;
+      let parsedDeadline:
+        | Date
+        | undefined;
 
       if (deadline !== undefined) {
-        parsedDeadline = new Date(deadline);
+        parsedDeadline =
+          new Date(deadline);
 
-        if (Number.isNaN(parsedDeadline.getTime())) {
+        if (
+          Number.isNaN(
+            parsedDeadline.getTime(),
+          )
+        ) {
           return reply.status(400).send({
             status: 'error',
             message: 'Invalid deadline',
@@ -57,11 +69,15 @@ export async function goalsRoutes(
 
       try {
         const goal = await createGoal({
-          workspaceId: request.workspace.id,
+          workspaceId:
+            request.workspace.id,
           name,
           targetAmount,
           ...(parsedDeadline
-            ? { deadline: parsedDeadline }
+            ? {
+                deadline:
+                  parsedDeadline,
+              }
             : {}),
         });
 
@@ -77,7 +93,8 @@ export async function goalsRoutes(
               'Goal name must contain at least 2 characters' ||
             error.message ===
               'Target amount must be greater than zero' ||
-            error.message === 'Invalid deadline'
+            error.message ===
+              'Invalid deadline'
           )
         ) {
           return reply.status(400).send({
@@ -120,15 +137,17 @@ export async function goalsRoutes(
       ],
     },
     async (request, reply) => {
-      const { goalId } = request.params as {
-        goalId: string;
-      };
+      const { goalId } =
+        request.params as {
+          goalId: string;
+        };
 
       try {
-        const progress = await getGoalProgress(
-          request.workspace.id,
-          goalId,
-        );
+        const progress =
+          await getGoalProgress(
+            request.workspace.id,
+            goalId,
+          );
 
         return reply.status(200).send({
           status: 'success',
@@ -137,12 +156,89 @@ export async function goalsRoutes(
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message === 'Goal not found'
+          error.message ===
+            'Goal not found'
         ) {
           return reply.status(404).send({
             status: 'error',
             message: 'Goal not found',
           });
+        }
+
+        throw error;
+      }
+    },
+  );
+
+  app.patch(
+    '/goals/:goalId/amount',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { goalId } =
+        request.params as {
+          goalId: string;
+        };
+
+      const {
+        currentAmount,
+      } = request.body as {
+        currentAmount?: number;
+      };
+
+      if (
+        currentAmount === undefined
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Current amount is required',
+        });
+      }
+
+      try {
+        const goal =
+          await updateGoalAmount({
+            workspaceId:
+              request.workspace.id,
+            goalId,
+            currentAmount,
+          });
+
+        return reply.status(200).send({
+          status: 'success',
+          goal,
+        });
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          (
+            error.message ===
+              'Current amount must be greater than or equal to zero' ||
+            error.message ===
+              'Goal not found'
+          )
+        ) {
+          return reply
+            .status(
+              error.message ===
+                'Goal not found'
+                ? 404
+                : 400,
+            )
+            .send({
+              status: 'error',
+              message: error.message,
+            });
         }
 
         throw error;
