@@ -1,3 +1,4 @@
+import { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../lib/prisma.js';
 import type {
   TransactionType,
@@ -29,29 +30,79 @@ export async function createTransaction(
       throw new Error('Account not found');
     }
 
+    if (account.type === 'CREDIT_CARD') {
+      throw new Error(
+        'Credit card transactions must use the credit card purchase endpoint',
+      );
+    }
+
+    if (
+      !Number.isFinite(input.amount) ||
+      input.amount <= 0
+    ) {
+      throw new Error(
+        'Amount must be greater than zero',
+      );
+    }
+
+    if (!input.description.trim()) {
+      throw new Error('Description is required');
+    }
+
+    if (
+      Number.isNaN(
+        input.transactionDate.getTime(),
+      )
+    ) {
+      throw new Error(
+        'Invalid transaction date',
+      );
+    }
+
+    if (
+      input.type !== 'INCOME' &&
+      input.type !== 'EXPENSE'
+    ) {
+      throw new Error(
+        'Invalid transaction type',
+      );
+    }
+
     if (input.categoryId) {
-      const category = await tx.category.findFirst({
-        where: {
-          id: input.categoryId,
-          workspaceId: input.workspaceId,
-        },
-      });
+      const category =
+        await tx.category.findFirst({
+          where: {
+            id: input.categoryId,
+            workspaceId: input.workspaceId,
+            type: input.type,
+          },
+        });
 
       if (!category) {
-        throw new Error('Category not found');
+        throw new Error(
+          'Category not found',
+        );
       }
     }
 
-    const transaction = await tx.financialTransaction.create({
-      data: {
-        workspaceId: input.workspaceId,
-        categoryId: input.categoryId ?? null,
-        type: input.type,
-        status: 'POSTED',
-        description: input.description,
-        transactionDate: input.transactionDate,
-      },
-    });
+    const amount = new Prisma.Decimal(
+      input.amount,
+    );
+
+    const transaction =
+      await tx.financialTransaction.create({
+        data: {
+          workspaceId: input.workspaceId,
+          categoryId:
+            input.categoryId ?? null,
+          type: input.type,
+          status: 'POSTED',
+          description:
+            input.description.trim(),
+          transactionDate:
+            input.transactionDate,
+        },
+      });
 
     await tx.ledgerEntry.create({
       data: {
@@ -61,7 +112,7 @@ export async function createTransaction(
           input.type === 'INCOME'
             ? 'CREDIT'
             : 'DEBIT',
-        amount: input.amount,
+        amount,
       },
     });
 
@@ -86,6 +137,7 @@ export async function listTransactions(
           account: true,
         },
       },
+      invoice: true,
     },
     orderBy: {
       transactionDate: 'desc',

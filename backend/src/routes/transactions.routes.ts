@@ -1,7 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 import { requireWorkspaceRoles } from '../middlewares/permission.middleware.js';
+
 import {
   createTransaction,
   listTransactions,
@@ -16,7 +18,11 @@ export async function transactionsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles('OWNER', 'ADMIN', 'FINANCE'),
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
       ],
     },
     async (request, reply) => {
@@ -50,23 +56,32 @@ export async function transactionsRoutes(
         });
       }
 
-      if (!['INCOME', 'EXPENSE'].includes(type)) {
+      if (
+        !['INCOME', 'EXPENSE'].includes(type)
+      ) {
         return reply.status(400).send({
           status: 'error',
           message: 'Invalid transaction type',
         });
       }
 
-      if (!Number.isFinite(amount) || amount <= 0) {
+      if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Amount must be greater than zero',
+          message:
+            'Amount must be greater than zero',
         });
       }
 
-      const normalizedDescription = description.trim();
+      const normalizedDescription =
+        description.trim();
 
-      if (normalizedDescription.length < 2) {
+      if (
+        normalizedDescription.length < 2
+      ) {
         return reply.status(400).send({
           status: 'error',
           message:
@@ -74,29 +89,40 @@ export async function transactionsRoutes(
         });
       }
 
-      const parsedDate = new Date(transactionDate);
+      const parsedDate =
+        new Date(transactionDate);
 
-      if (Number.isNaN(parsedDate.getTime())) {
+      if (
+        Number.isNaN(
+          parsedDate.getTime(),
+        )
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid transaction date',
+          message:
+            'Invalid transaction date',
         });
       }
 
       try {
         const transactionInput = {
-          workspaceId: request.workspace.id,
+          workspaceId:
+            request.workspace.id,
           accountId,
           type,
           amount,
-          description: normalizedDescription,
+          description:
+            normalizedDescription,
           transactionDate: parsedDate,
-          ...(categoryId ? { categoryId } : {}),
+          ...(categoryId
+            ? { categoryId }
+            : {}),
         };
 
-        const transaction = await createTransaction(
-          transactionInput,
-        );
+        const transaction =
+          await createTransaction(
+            transactionInput,
+          );
 
         return reply.status(201).send({
           status: 'success',
@@ -104,22 +130,54 @@ export async function transactionsRoutes(
         });
       } catch (error) {
         if (
-          error instanceof Error &&
-          error.message === 'Account not found'
+          !(error instanceof Error)
+        ) {
+          throw error;
+        }
+
+        if (
+          error.message ===
+          'Account not found'
         ) {
           return reply.status(404).send({
             status: 'error',
-            message: 'Account not found',
+            message: error.message,
           });
         }
 
         if (
-          error instanceof Error &&
-          error.message === 'Category not found'
+          error.message ===
+          'Category not found'
         ) {
           return reply.status(404).send({
             status: 'error',
-            message: 'Category not found',
+            message: error.message,
+          });
+        }
+
+        if (
+          error.message ===
+          'Credit card transactions must use the credit card purchase endpoint'
+        ) {
+          return reply.status(400).send({
+            status: 'error',
+            message: error.message,
+          });
+        }
+
+        if (
+          error.message ===
+            'Amount must be greater than zero' ||
+          error.message ===
+            'Description is required' ||
+          error.message ===
+            'Invalid transaction date' ||
+          error.message ===
+            'Invalid transaction type'
+        ) {
+          return reply.status(400).send({
+            status: 'error',
+            message: error.message,
           });
         }
 
@@ -137,9 +195,10 @@ export async function transactionsRoutes(
       ],
     },
     async (request, reply) => {
-      const transactions = await listTransactions(
-        request.workspace.id,
-      );
+      const transactions =
+        await listTransactions(
+          request.workspace.id,
+        );
 
       return reply.status(200).send({
         status: 'success',

@@ -18,7 +18,8 @@ export async function getDashboard(
 
   if (
     hasMonth &&
-    (period.month! < 1 ||
+    (!Number.isInteger(period.month) ||
+      period.month! < 1 ||
       period.month! > 12)
   ) {
     throw new Error(
@@ -61,6 +62,16 @@ export async function getDashboard(
     );
   }
 
+  /*
+   * CONTAS
+   *
+   * O saldo é calculado exclusivamente
+   * através dos LedgerEntries.
+   *
+   * Isso evita contar o initialBalance
+   * duas vezes, já que a criação da conta
+   * também registra o saldo inicial no ledger.
+   */
   const accounts =
     await prisma.account.findMany({
       where: {
@@ -72,7 +83,6 @@ export async function getDashboard(
         name: true,
         type: true,
         currency: true,
-        initialBalance: true,
         entries: {
           where: {
             transaction: {
@@ -94,6 +104,9 @@ export async function getDashboard(
           },
         },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
   let totalBalance =
@@ -102,9 +115,7 @@ export async function getDashboard(
   const accountBalances =
     accounts.map((account) => {
       let balance =
-        new Prisma.Decimal(
-          account.initialBalance,
-        );
+        new Prisma.Decimal(0);
 
       for (const entry of account.entries) {
         if (entry.type === 'CREDIT') {
@@ -132,6 +143,9 @@ export async function getDashboard(
       };
     });
 
+  /*
+   * TRANSAÇÕES DO PERÍODO
+   */
   const transactionPeriodFilter =
     periodStart && periodEnd
       ? {
@@ -275,12 +289,9 @@ export async function getDashboard(
       });
 
   /*
-   * Evolução financeira dos últimos
-   * 6 meses.
+   * EVOLUÇÃO DOS ÚLTIMOS 6 MESES
    */
-
-  const currentDate =
-    new Date();
+  const currentDate = new Date();
 
   const monthlyStart =
     new Date(
@@ -456,6 +467,9 @@ export async function getDashboard(
         .div(totalIncome);
   }
 
+  /*
+   * COMPARAÇÃO COM O MÊS ANTERIOR
+   */
   let previousMonth:
     | {
         month: number;
@@ -512,10 +526,8 @@ export async function getDashboard(
               ],
             },
             transactionDate: {
-              gte:
-                previousMonthDate,
-              lt:
-                previousMonthEnd,
+              gte: previousMonthDate,
+              lt: previousMonthEnd,
             },
           },
           select: {
@@ -547,9 +559,7 @@ export async function getDashboard(
           transaction.entries
       ) {
         amount =
-          amount.plus(
-            entry.amount,
-          );
+          amount.plus(entry.amount);
       }
 
       if (
@@ -625,9 +635,8 @@ export async function getDashboard(
   }
 
   /*
-   * Budgets do Dashboard.
+   * BUDGETS
    */
-
   let budgets: Array<{
     id: string;
     categoryId: string;
@@ -817,6 +826,72 @@ export async function getDashboard(
       );
   }
 
+  /*
+   * CARTÕES DE CRÉDITO
+   *
+   * O limite utilizado vem das faturas
+   * OPEN, CLOSED e OVERDUE.
+   *
+   * PAID não consome mais limite.
+   */
+  const creditCardIds =
+    accounts
+      .filter(
+        (account) =>
+          account.type ===
+            'CREDIT_CARD' &&
+          account.creditCard !== null,
+      )
+      .map(
+        (account) =>
+          account.creditCard!.id,
+      );
+
+  const openInvoices =
+    creditCardIds.length > 0
+      ? await prisma.creditCardInvoice.findMany(
+          {
+            where: {
+              creditCardId: {
+                in: creditCardIds,
+              },
+              status: {
+                in: [
+                  'OPEN',
+                  'CLOSED',
+                  'OVERDUE',
+                ],
+              },
+            },
+            select: {
+              creditCardId: true,
+              totalAmount: true,
+            },
+          },
+        )
+      : [];
+
+  const usedLimitByCard =
+    new Map<
+      string,
+      Prisma.Decimal
+    >();
+
+  for (const invoice of openInvoices) {
+    const current =
+      usedLimitByCard.get(
+        invoice.creditCardId,
+      ) ??
+      new Prisma.Decimal(0);
+
+    usedLimitByCard.set(
+      invoice.creditCardId,
+      current.plus(
+        invoice.totalAmount,
+      ),
+    );
+  }
+
   let totalCreditLimit =
     new Prisma.Decimal(0);
 
@@ -832,34 +907,22 @@ export async function getDashboard(
         (account) =>
           account.type ===
             'CREDIT_CARD' &&
-          account.creditCard !==
-            null,
+          account.creditCard !== null,
       )
       .map((account) => {
         const creditCard =
           account.creditCard!;
 
-        let usedLimit =
-          new Prisma.Decimal(0);
-
-        for (
-          const entry of
-            account.entries
-        ) {
-          if (
-            entry.type === 'DEBIT'
-          ) {
-            usedLimit =
-              usedLimit.plus(
-                entry.amount,
-              );
-          }
-        }
-
         const creditLimit =
           new Prisma.Decimal(
             creditCard.creditLimit,
           );
+
+        const usedLimit =
+          usedLimitByCard.get(
+            creditCard.id,
+          ) ??
+          new Prisma.Decimal(0);
 
         const availableLimit =
           creditLimit.minus(
@@ -898,6 +961,9 @@ export async function getDashboard(
         };
       });
 
+  /*
+   * TRANSAÇÕES RECENTES
+   */
   const recentTransactions =
     await prisma.financialTransaction.findMany(
       {

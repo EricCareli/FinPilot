@@ -1,11 +1,14 @@
 import type { FastifyInstance } from 'fastify';
+
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 import { requireWorkspaceRoles } from '../middlewares/permission.middleware.js';
+
 import {
   createAccount,
   listAccounts,
 } from '../services/account.service.js';
+
 import { getAccountBalance } from '../services/account-balance.service.js';
 
 export async function accountsRoutes(
@@ -17,7 +20,11 @@ export async function accountsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles('OWNER', 'ADMIN', 'FINANCE'),
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
       ],
     },
     async (request, reply) => {
@@ -35,7 +42,10 @@ export async function accountsRoutes(
           | 'CREDIT_CARD'
           | 'INVESTMENT'
           | 'OTHER';
-        currency?: 'BRL' | 'USD' | 'EUR';
+        currency?:
+          | 'BRL'
+          | 'USD'
+          | 'EUR';
         initialBalance?: number;
       };
 
@@ -52,7 +62,8 @@ export async function accountsRoutes(
         });
       }
 
-      const normalizedName = name.trim();
+      const normalizedName =
+        name.trim();
 
       if (normalizedName.length < 2) {
         return reply.status(400).send({
@@ -74,36 +85,81 @@ export async function accountsRoutes(
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid account type',
+          message:
+            'Invalid account type',
         });
       }
 
-      if (!['BRL', 'USD', 'EUR'].includes(currency)) {
+      if (
+        !['BRL', 'USD', 'EUR'].includes(
+          currency,
+        )
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid currency',
+          message:
+            'Invalid currency',
         });
       }
 
-      if (!Number.isFinite(initialBalance)) {
+      if (
+        !Number.isFinite(
+          initialBalance,
+        )
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Initial balance must be a valid number',
+          message:
+            'Initial balance must be a valid number',
         });
       }
 
-      const account = await createAccount({
-        workspaceId: request.workspace.id,
-        name: normalizedName,
-        type,
-        currency,
-        initialBalance,
-      });
+      try {
+        const account =
+          await createAccount({
+            workspaceId:
+              request.workspace.id,
+            name: normalizedName,
+            type,
+            currency,
+            initialBalance,
+          });
 
-      return reply.status(201).send({
-        status: 'success',
-        account,
-      });
+        return reply.status(201).send({
+          status: 'success',
+          account,
+        });
+      } catch (error) {
+        if (
+          error instanceof Error
+        ) {
+          if (
+            error.message ===
+            'Account name is required'
+          ) {
+            return reply
+              .status(400)
+              .send({
+                status: 'error',
+                message: error.message,
+              });
+          }
+
+          if (
+            error.message ===
+            'Initial balance must be a valid number'
+          ) {
+            return reply
+              .status(400)
+              .send({
+                status: 'error',
+                message: error.message,
+              });
+          }
+        }
+
+        throw error;
+      }
     },
   );
 
@@ -116,9 +172,10 @@ export async function accountsRoutes(
       ],
     },
     async (request, reply) => {
-      const accounts = await listAccounts(
-        request.workspace.id,
-      );
+      const accounts =
+        await listAccounts(
+          request.workspace.id,
+        );
 
       return reply.status(200).send({
         status: 'success',
@@ -136,15 +193,17 @@ export async function accountsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
       try {
-        const balance = await getAccountBalance(
-          request.workspace.id,
-          accountId,
-        );
+        const balance =
+          await getAccountBalance(
+            request.workspace.id,
+            accountId,
+          );
 
         return reply.status(200).send({
           status: 'success',
@@ -153,11 +212,13 @@ export async function accountsRoutes(
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message === 'Account not found'
+          error.message ===
+            'Account not found'
         ) {
           return reply.status(404).send({
             status: 'error',
-            message: 'Account not found',
+            message:
+              'Account not found',
           });
         }
 

@@ -1,3 +1,4 @@
+import { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../lib/prisma.js';
 import type {
   AccountType,
@@ -15,43 +16,79 @@ export interface CreateAccountInput {
 export async function createAccount(
   input: CreateAccountInput,
 ) {
-  return prisma.$transaction(async (tx) => {
-    const account = await tx.account.create({
-      data: {
-        workspaceId: input.workspaceId,
-        name: input.name,
-        type: input.type,
-        currency: input.currency,
-        initialBalance: input.initialBalance,
-      },
-    });
+  if (!input.name.trim()) {
+    throw new Error(
+      'Account name is required',
+    );
+  }
 
-    if (input.initialBalance !== 0) {
-      const transaction = await tx.financialTransaction.create({
-        data: {
-          workspaceId: input.workspaceId,
-          type: 'ADJUSTMENT',
-          status: 'POSTED',
-          description: 'Initial account balance',
-          transactionDate: new Date(),
-        },
-      });
+  if (
+    !Number.isFinite(
+      input.initialBalance,
+    )
+  ) {
+    throw new Error(
+      'Initial balance must be a valid number',
+    );
+  }
 
-      await tx.ledgerEntry.create({
-        data: {
-          transactionId: transaction.id,
-          accountId: account.id,
-          type:
-            input.initialBalance > 0
-              ? 'CREDIT'
-              : 'DEBIT',
-          amount: Math.abs(input.initialBalance),
-        },
-      });
-    }
+  const initialBalance =
+    new Prisma.Decimal(
+      input.initialBalance,
+    );
 
-    return account;
-  });
+  return prisma.$transaction(
+    async (tx) => {
+      const account =
+        await tx.account.create({
+          data: {
+            workspaceId:
+              input.workspaceId,
+            name: input.name.trim(),
+            type: input.type,
+            currency: input.currency,
+            initialBalance,
+          },
+        });
+
+      if (
+        !initialBalance.isZero()
+      ) {
+        const transaction =
+          await tx.financialTransaction.create(
+            {
+              data: {
+                workspaceId:
+                  input.workspaceId,
+                type: 'ADJUSTMENT',
+                status: 'POSTED',
+                description:
+                  'Initial account balance',
+                transactionDate:
+                  new Date(),
+              },
+            },
+          );
+
+        await tx.ledgerEntry.create({
+          data: {
+            transactionId:
+              transaction.id,
+            accountId:
+              account.id,
+            type:
+              initialBalance.gt(0)
+                ? 'CREDIT'
+                : 'DEBIT',
+            amount:
+              initialBalance.abs(),
+          },
+        });
+      }
+
+      return account;
+    },
+  );
 }
 
 export async function listAccounts(

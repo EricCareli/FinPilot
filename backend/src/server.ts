@@ -32,68 +32,84 @@ async function buildServer() {
     logger: true,
   });
 
-  app.setErrorHandler((error, request, reply) => {
-    request.log.error(error);
+  app.setErrorHandler(
+    (error, request, reply) => {
+      request.log.error(error);
 
-    if (error instanceof AppError) {
-      return reply.status(error.statusCode).send({
-        status: 'error',
-        message: error.message,
-      });
-    }
-
-    if (
-      typeof error === 'object' &&
-      error !== null
-    ) {
-      const fastifyError = error as {
-        validation?: unknown;
-        code?: string;
-        statusCode?: number;
-        message?: string;
-      };
-
-      if (fastifyError.validation) {
-        return reply.status(400).send({
-          status: 'error',
-          message: 'Request validation failed',
-          details: fastifyError.validation,
-        });
-      }
-
-      if (
-        fastifyError.code ===
-          'FST_ERR_CTP_INVALID_CONTENT_LENGTH' ||
-        fastifyError.code ===
-          'FST_ERR_CTP_BODY_TOO_LARGE'
-      ) {
-        return reply.status(400).send({
-          status: 'error',
-          message: 'Invalid request body',
-        });
-      }
-
-      if (
-        fastifyError.statusCode &&
-        fastifyError.statusCode >= 400 &&
-        fastifyError.statusCode < 500
-      ) {
+      if (error instanceof AppError) {
         return reply
-          .status(fastifyError.statusCode)
+          .status(error.statusCode)
           .send({
             status: 'error',
-            message:
-              fastifyError.message ??
-              'Request error',
+            message: error.message,
           });
       }
-    }
 
-    return reply.status(500).send({
-      status: 'error',
-      message: 'Internal server error',
-    });
-  });
+      if (
+        typeof error === 'object' &&
+        error !== null
+      ) {
+        const fastifyError = error as {
+          validation?: unknown;
+          code?: string;
+          statusCode?: number;
+          message?: string;
+        };
+
+        if (fastifyError.validation) {
+          return reply.status(400).send({
+            status: 'error',
+            message:
+              'Request validation failed',
+            details:
+              fastifyError.validation,
+          });
+        }
+
+        if (
+          fastifyError.code ===
+          'FST_ERR_CTP_INVALID_CONTENT_LENGTH'
+        ) {
+          return reply.status(400).send({
+            status: 'error',
+            message:
+              'Request body length does not match Content-Length',
+          });
+        }
+
+        if (
+          fastifyError.code ===
+          'FST_ERR_CTP_BODY_TOO_LARGE'
+        ) {
+          return reply.status(413).send({
+            status: 'error',
+            message:
+              'Request body is too large',
+          });
+        }
+
+        if (
+          fastifyError.statusCode &&
+          fastifyError.statusCode >= 400 &&
+          fastifyError.statusCode < 500
+        ) {
+          return reply
+            .status(fastifyError.statusCode)
+            .send({
+              status: 'error',
+              message:
+                fastifyError.message ??
+                'Request error',
+            });
+        }
+      }
+
+      return reply.status(500).send({
+        status: 'error',
+        message: 'Internal server error',
+      });
+    },
+  );
 
   await app.register(cors, {
     origin: true,

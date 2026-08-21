@@ -40,17 +40,63 @@ function calculateNextRunDate(
       );
       break;
 
-    case 'MONTHLY':
+    case 'MONTHLY': {
+      const originalDay =
+        nextDate.getDate();
+
+      nextDate.setDate(1);
       nextDate.setMonth(
         nextDate.getMonth() + 1,
       );
-      break;
 
-    case 'YEARLY':
+      const lastDayOfMonth =
+        new Date(
+          nextDate.getFullYear(),
+          nextDate.getMonth() + 1,
+          0,
+        ).getDate();
+
+      nextDate.setDate(
+        Math.min(
+          originalDay,
+          lastDayOfMonth,
+        ),
+      );
+
+      break;
+    }
+
+    case 'YEARLY': {
+      const originalMonth =
+        nextDate.getMonth();
+
+      const originalDay =
+        nextDate.getDate();
+
+      nextDate.setDate(1);
       nextDate.setFullYear(
         nextDate.getFullYear() + 1,
       );
+      nextDate.setMonth(
+        originalMonth,
+      );
+
+      const lastDayOfMonth =
+        new Date(
+          nextDate.getFullYear(),
+          originalMonth + 1,
+          0,
+        ).getDate();
+
+      nextDate.setDate(
+        Math.min(
+          originalDay,
+          lastDayOfMonth,
+        ),
+      );
+
       break;
+    }
   }
 
   return nextDate;
@@ -77,21 +123,34 @@ export async function createRecurringTransaction(
     );
   }
 
-  if (!input.description.trim()) {
-    throw new Error('Description is required');
+  const normalizedDescription =
+    input.description.trim();
+
+  if (!normalizedDescription) {
+    throw new Error(
+      'Description is required',
+    );
   }
 
   if (
-    Number.isNaN(input.startDate.getTime())
+    Number.isNaN(
+      input.startDate.getTime(),
+    )
   ) {
-    throw new Error('Invalid start date');
+    throw new Error(
+      'Invalid start date',
+    );
   }
 
   if (
     input.endDate &&
-    Number.isNaN(input.endDate.getTime())
+    Number.isNaN(
+      input.endDate.getTime(),
+    )
   ) {
-    throw new Error('Invalid end date');
+    throw new Error(
+      'Invalid end date',
+    );
   }
 
   if (
@@ -103,208 +162,275 @@ export async function createRecurringTransaction(
     );
   }
 
-  return prisma.$transaction(async (tx) => {
-    const account = await tx.account.findFirst({
-      where: {
-        id: input.accountId,
-        workspaceId: input.workspaceId,
-        status: 'ACTIVE',
-      },
-    });
-
-    if (!account) {
-      throw new Error('Account not found');
-    }
-
-    if (input.categoryId) {
-      const category =
-        await tx.category.findFirst({
+  return prisma.$transaction(
+    async (tx) => {
+      const account =
+        await tx.account.findFirst({
           where: {
-            id: input.categoryId,
-            workspaceId: input.workspaceId,
+            id: input.accountId,
+            workspaceId:
+              input.workspaceId,
+            status: 'ACTIVE',
           },
         });
 
-      if (!category) {
-        throw new Error('Category not found');
-      }
-
-      if (category.type !== input.type) {
+      if (!account) {
         throw new Error(
-          'Category type must match recurring transaction type',
+          'Account not found',
         );
       }
-    }
 
-    const amount = new Prisma.Decimal(
-      input.amount,
-    );
+      if (
+        account.type ===
+        'CREDIT_CARD'
+      ) {
+        throw new Error(
+          'Recurring transactions cannot use credit card accounts',
+        );
+      }
 
-    return tx.recurringTransaction.create({
-      data: {
-        workspaceId: input.workspaceId,
-        accountId: input.accountId,
-        categoryId:
-          input.categoryId ?? null,
-        type: input.type,
-        amount,
-        description:
-          input.description.trim(),
-        frequency: input.frequency,
-        startDate: input.startDate,
-        endDate: input.endDate ?? null,
-        nextRunDate: input.startDate,
-        status: 'ACTIVE',
-      },
-    });
-  });
+      if (input.categoryId) {
+        const category =
+          await tx.category.findFirst({
+            where: {
+              id: input.categoryId,
+              workspaceId:
+                input.workspaceId,
+            },
+          });
+
+        if (!category) {
+          throw new Error(
+            'Category not found',
+          );
+        }
+
+        if (
+          category.type !==
+          input.type
+        ) {
+          throw new Error(
+            'Category type must match recurring transaction type',
+          );
+        }
+      }
+
+      const amount =
+        new Prisma.Decimal(
+          input.amount,
+        );
+
+      return tx.recurringTransaction.create(
+        {
+          data: {
+            workspaceId:
+              input.workspaceId,
+            accountId:
+              input.accountId,
+            categoryId:
+              input.categoryId ??
+              null,
+            type: input.type,
+            amount,
+            description:
+              normalizedDescription,
+            frequency:
+              input.frequency,
+            startDate:
+              input.startDate,
+            endDate:
+              input.endDate ?? null,
+            nextRunDate:
+              input.startDate,
+            status: 'ACTIVE',
+          },
+        },
+      );
+    },
+  );
 }
 
 export async function listRecurringTransactions(
   workspaceId: string,
 ) {
-  return prisma.recurringTransaction.findMany({
-    where: {
-      workspaceId,
-      status: {
-        not: 'CANCELLED',
+  return prisma.recurringTransaction.findMany(
+    {
+      where: {
+        workspaceId,
+        status: {
+          not: 'CANCELLED',
+        },
+      },
+      include: {
+        account: true,
+        category: true,
+      },
+      orderBy: {
+        nextRunDate: 'asc',
       },
     },
-    include: {
-      account: true,
-      category: true,
-    },
-    orderBy: {
-      nextRunDate: 'asc',
-    },
-  });
+  );
 }
 
 export async function executeRecurringTransaction(
   workspaceId: string,
   recurringTransactionId: string,
 ) {
-  return prisma.$transaction(async (tx) => {
-    const recurringTransaction =
-      await tx.recurringTransaction.findFirst({
-        where: {
-          id: recurringTransactionId,
-          workspaceId,
-        },
-      });
+  return prisma.$transaction(
+    async (tx) => {
+      const recurringTransaction =
+        await tx.recurringTransaction.findFirst(
+          {
+            where: {
+              id: recurringTransactionId,
+              workspaceId,
+            },
+          },
+        );
 
-    if (!recurringTransaction) {
-      throw new Error(
-        'Recurring transaction not found',
-      );
-    }
+      if (!recurringTransaction) {
+        throw new Error(
+          'Recurring transaction not found',
+        );
+      }
 
-    if (
-      recurringTransaction.status !== 'ACTIVE'
-    ) {
-      throw new Error(
-        'Recurring transaction is not active',
-      );
-    }
+      if (
+        recurringTransaction.status !==
+        'ACTIVE'
+      ) {
+        throw new Error(
+          'Recurring transaction is not active',
+        );
+      }
 
-    const account = await tx.account.findFirst({
-      where: {
-        id: recurringTransaction.accountId,
-        workspaceId,
-        status: 'ACTIVE',
-      },
-    });
+      const account =
+        await tx.account.findFirst({
+          where: {
+            id:
+              recurringTransaction.accountId,
+            workspaceId,
+            status: 'ACTIVE',
+          },
+        });
 
-    if (!account) {
-      throw new Error('Account not found');
-    }
+      if (!account) {
+        throw new Error(
+          'Account not found',
+        );
+      }
 
-    const now = new Date();
+      if (
+        account.type ===
+        'CREDIT_CARD'
+      ) {
+        throw new Error(
+          'Recurring transactions cannot use credit card accounts',
+        );
+      }
 
-    if (
-      recurringTransaction.nextRunDate > now
-    ) {
-      throw new Error(
-        'Recurring transaction is not due yet',
-      );
-    }
+      const now = new Date();
 
-    const transaction =
-      await tx.financialTransaction.create({
+      if (
+        recurringTransaction.nextRunDate >
+        now
+      ) {
+        throw new Error(
+          'Recurring transaction is not due yet',
+        );
+      }
+
+      const transaction =
+        await tx.financialTransaction.create(
+          {
+            data: {
+              workspaceId,
+              categoryId:
+                recurringTransaction.categoryId,
+              type:
+                recurringTransaction.type,
+              status: 'POSTED',
+              description:
+                recurringTransaction.description,
+              transactionDate:
+                recurringTransaction.nextRunDate,
+            },
+          },
+        );
+
+      const ledgerEntryType =
+        recurringTransaction.type ===
+        'INCOME'
+          ? 'CREDIT'
+          : 'DEBIT';
+
+      await tx.ledgerEntry.create({
         data: {
-          workspaceId,
-          categoryId:
-            recurringTransaction.categoryId,
-          type: recurringTransaction.type,
-          status: 'POSTED',
-          description:
-            recurringTransaction.description,
-          transactionDate:
-            recurringTransaction.nextRunDate,
+          transactionId:
+            transaction.id,
+          accountId:
+            account.id,
+          type: ledgerEntryType,
+          amount:
+            recurringTransaction.amount,
         },
       });
 
-    const ledgerEntryType =
-      recurringTransaction.type === 'INCOME'
-        ? 'CREDIT'
-        : 'DEBIT';
+      const nextRunDate =
+        calculateNextRunDate(
+          recurringTransaction.nextRunDate,
+          recurringTransaction.frequency,
+        );
 
-    await tx.ledgerEntry.create({
-      data: {
-        transactionId: transaction.id,
-        accountId: account.id,
-        type: ledgerEntryType,
-        amount: recurringTransaction.amount,
-      },
-    });
+      if (
+        recurringTransaction.endDate &&
+        nextRunDate >
+          recurringTransaction.endDate
+      ) {
+        await tx.recurringTransaction.update(
+          {
+            where: {
+              id:
+                recurringTransaction.id,
+            },
+            data: {
+              nextRunDate,
+              status: 'CANCELLED',
+            },
+          },
+        );
 
-    const nextRunDate =
-      calculateNextRunDate(
-        recurringTransaction.nextRunDate,
-        recurringTransaction.frequency,
-      );
+        return {
+          transaction,
+          recurringTransaction: {
+            id:
+              recurringTransaction.id,
+            nextRunDate,
+            status:
+              'CANCELLED' as const,
+          },
+        };
+      }
 
-    if (
-      recurringTransaction.endDate &&
-      nextRunDate >
-        recurringTransaction.endDate
-    ) {
-      await tx.recurringTransaction.update({
-        where: {
-          id: recurringTransaction.id,
-        },
-        data: {
-          nextRunDate,
-          status: 'CANCELLED',
-        },
-      });
+      const updatedRecurringTransaction =
+        await tx.recurringTransaction.update(
+          {
+            where: {
+              id:
+                recurringTransaction.id,
+            },
+            data: {
+              nextRunDate,
+            },
+          },
+        );
 
       return {
         transaction,
-        recurringTransaction: {
-          id: recurringTransaction.id,
-          nextRunDate,
-          status: 'CANCELLED' as const,
-        },
+        recurringTransaction:
+          updatedRecurringTransaction,
       };
-    }
-
-    const updatedRecurringTransaction =
-      await tx.recurringTransaction.update({
-        where: {
-          id: recurringTransaction.id,
-        },
-        data: {
-          nextRunDate,
-        },
-      });
-
-    return {
-      transaction,
-      recurringTransaction:
-        updatedRecurringTransaction,
-    };
-  });
+    },
+  );
 }
 
 export async function pauseRecurringTransaction(
@@ -312,12 +438,14 @@ export async function pauseRecurringTransaction(
   recurringTransactionId: string,
 ) {
   const recurringTransaction =
-    await prisma.recurringTransaction.findFirst({
-      where: {
-        id: recurringTransactionId,
-        workspaceId,
+    await prisma.recurringTransaction.findFirst(
+      {
+        where: {
+          id: recurringTransactionId,
+          workspaceId,
+        },
       },
-    });
+    );
 
   if (!recurringTransaction) {
     throw new Error(
@@ -335,21 +463,24 @@ export async function pauseRecurringTransaction(
   }
 
   if (
-    recurringTransaction.status === 'PAUSED'
+    recurringTransaction.status ===
+    'PAUSED'
   ) {
     throw new Error(
       'Recurring transaction is already paused',
     );
   }
 
-  return prisma.recurringTransaction.update({
-    where: {
-      id: recurringTransactionId,
+  return prisma.recurringTransaction.update(
+    {
+      where: {
+        id: recurringTransactionId,
+      },
+      data: {
+        status: 'PAUSED',
+      },
     },
-    data: {
-      status: 'PAUSED',
-    },
-  });
+  );
 }
 
 export async function resumeRecurringTransaction(
@@ -357,12 +488,14 @@ export async function resumeRecurringTransaction(
   recurringTransactionId: string,
 ) {
   const recurringTransaction =
-    await prisma.recurringTransaction.findFirst({
-      where: {
-        id: recurringTransactionId,
-        workspaceId,
+    await prisma.recurringTransaction.findFirst(
+      {
+        where: {
+          id: recurringTransactionId,
+          workspaceId,
+        },
       },
-    });
+    );
 
   if (!recurringTransaction) {
     throw new Error(
@@ -380,21 +513,24 @@ export async function resumeRecurringTransaction(
   }
 
   if (
-    recurringTransaction.status === 'ACTIVE'
+    recurringTransaction.status ===
+    'ACTIVE'
   ) {
     throw new Error(
       'Recurring transaction is already active',
     );
   }
 
-  return prisma.recurringTransaction.update({
-    where: {
-      id: recurringTransactionId,
+  return prisma.recurringTransaction.update(
+    {
+      where: {
+        id: recurringTransactionId,
+      },
+      data: {
+        status: 'ACTIVE',
+      },
     },
-    data: {
-      status: 'ACTIVE',
-    },
-  });
+  );
 }
 
 export async function cancelRecurringTransaction(
@@ -402,12 +538,14 @@ export async function cancelRecurringTransaction(
   recurringTransactionId: string,
 ) {
   const recurringTransaction =
-    await prisma.recurringTransaction.findFirst({
-      where: {
-        id: recurringTransactionId,
-        workspaceId,
+    await prisma.recurringTransaction.findFirst(
+      {
+        where: {
+          id: recurringTransactionId,
+          workspaceId,
+        },
       },
-    });
+    );
 
   if (!recurringTransaction) {
     throw new Error(
@@ -424,12 +562,14 @@ export async function cancelRecurringTransaction(
     );
   }
 
-  return prisma.recurringTransaction.update({
-    where: {
-      id: recurringTransactionId,
+  return prisma.recurringTransaction.update(
+    {
+      where: {
+        id: recurringTransactionId,
+      },
+      data: {
+        status: 'CANCELLED',
+      },
     },
-    data: {
-      status: 'CANCELLED',
-    },
-  });
+  );
 }
