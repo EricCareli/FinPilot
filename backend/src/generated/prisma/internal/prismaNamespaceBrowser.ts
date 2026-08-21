@@ -176,6 +176,7 @@ export const FinancialTransactionScalarFieldEnum = {
   id: 'id',
   workspaceId: 'workspaceId',
   categoryId: 'categoryId',
+  invoiceId: 'invoiceId',
   type: 'type',
   status: 'status',
   description: 'description',

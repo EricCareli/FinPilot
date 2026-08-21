@@ -8,18 +8,74 @@ export interface CreateInvoiceInput {
   year: number;
 }
 
+function getLastDayOfMonth(
+  year: number,
+  month: number,
+): number {
+  return new Date(
+    Date.UTC(year, month, 0),
+  ).getUTCDate();
+}
+
+function createSafeDate(
+  year: number,
+  month: number,
+  day: number,
+): Date {
+  const safeDay = Math.min(
+    day,
+    getLastDayOfMonth(year, month),
+  );
+
+  return new Date(
+    Date.UTC(year, month - 1, safeDay),
+  );
+}
+
 function getInvoiceDates(
   closingDay: number,
   dueDay: number,
   month: number,
   year: number,
 ) {
-  const closingDate = new Date(
-    Date.UTC(year, month - 1, closingDay),
+  const closingDate = createSafeDate(
+    year,
+    month,
+    closingDay,
   );
 
-  let dueYear = year;
+  let previousMonth = month - 1;
+  let previousYear = year;
+
+  if (previousMonth < 1) {
+    previousMonth = 12;
+    previousYear -= 1;
+  }
+
+  const periodStart = new Date(
+    Date.UTC(
+      previousYear,
+      previousMonth - 1,
+      Math.min(
+        closingDay + 1,
+        getLastDayOfMonth(
+          previousYear,
+          previousMonth,
+        ),
+      ),
+    ),
+  );
+
+  const periodEnd = new Date(
+    closingDate.getTime(),
+  );
+
+  periodEnd.setUTCDate(
+    periodEnd.getUTCDate() + 1,
+  );
+
   let dueMonth = month;
+  let dueYear = year;
 
   if (dueDay <= closingDay) {
     dueMonth += 1;
@@ -30,16 +86,10 @@ function getInvoiceDates(
     }
   }
 
-  const dueDate = new Date(
-    Date.UTC(dueYear, dueMonth - 1, dueDay),
-  );
-
-  const periodStart = new Date(
-    Date.UTC(year, month - 2, closingDay + 1),
-  );
-
-  const periodEnd = new Date(
-    Date.UTC(year, month - 1, closingDay + 1),
+  const dueDate = createSafeDate(
+    dueYear,
+    dueMonth,
+    dueDay,
   );
 
   return {
@@ -67,7 +117,9 @@ export async function createInvoice(
       });
 
     if (!creditCard) {
-      throw new Error('Credit card not found');
+      throw new Error(
+        'Credit card not found',
+      );
     }
 
     if (
@@ -88,16 +140,19 @@ export async function createInvoice(
     const existingInvoice =
       await tx.creditCardInvoice.findUnique({
         where: {
-          creditCardId_referenceMonth_referenceYear: {
-            creditCardId: creditCard.id,
-            referenceMonth: input.month,
-            referenceYear: input.year,
-          },
+          creditCardId_referenceMonth_referenceYear:
+            {
+              creditCardId: creditCard.id,
+              referenceMonth: input.month,
+              referenceYear: input.year,
+            },
         },
       });
 
     if (existingInvoice) {
-      throw new Error('Invoice already exists');
+      throw new Error(
+        'Invoice already exists',
+      );
     }
 
     const {
@@ -142,11 +197,14 @@ export async function createInvoice(
         },
       });
 
-    let totalAmount = new Prisma.Decimal(0);
+    let totalAmount =
+      new Prisma.Decimal(0);
 
     for (const transaction of transactions) {
       for (const entry of transaction.entries) {
-        totalAmount = totalAmount.plus(entry.amount);
+        totalAmount = totalAmount.plus(
+          entry.amount,
+        );
       }
     }
 

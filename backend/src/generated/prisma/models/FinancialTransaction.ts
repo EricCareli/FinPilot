@@ -28,6 +28,7 @@ export type FinancialTransactionMinAggregateOutputType = {
   id: string | null
   workspaceId: string | null
   categoryId: string | null
+  invoiceId: string | null
   type: $Enums.TransactionType | null
   status: $Enums.TransactionStatus | null
   description: string | null
@@ -40,6 +41,7 @@ export type FinancialTransactionMaxAggregateOutputType = {
   id: string | null
   workspaceId: string | null
   categoryId: string | null
+  invoiceId: string | null
   type: $Enums.TransactionType | null
   status: $Enums.TransactionStatus | null
   description: string | null
@@ -52,6 +54,7 @@ export type FinancialTransactionCountAggregateOutputType = {
   id: number
   workspaceId: number
   categoryId: number
+  invoiceId: number
   type: number
   status: number
   description: number
@@ -66,6 +69,7 @@ export type FinancialTransactionMinAggregateInputType = {
   id?: true
   workspaceId?: true
   categoryId?: true
+  invoiceId?: true
   type?: true
   status?: true
   description?: true
@@ -78,6 +82,7 @@ export type FinancialTransactionMaxAggregateInputType = {
   id?: true
   workspaceId?: true
   categoryId?: true
+  invoiceId?: true
   type?: true
   status?: true
   description?: true
@@ -90,6 +95,7 @@ export type FinancialTransactionCountAggregateInputType = {
   id?: true
   workspaceId?: true
   categoryId?: true
+  invoiceId?: true
   type?: true
   status?: true
   description?: true
@@ -175,6 +181,7 @@ export type FinancialTransactionGroupByOutputType = {
   id: string
   workspaceId: string
   categoryId: string | null
+  invoiceId: string | null
   type: $Enums.TransactionType
   status: $Enums.TransactionStatus
   description: string
@@ -208,6 +215,7 @@ export type FinancialTransactionWhereInput = {
   id?: Prisma.StringFilter<"FinancialTransaction"> | string
   workspaceId?: Prisma.StringFilter<"FinancialTransaction"> | string
   categoryId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
+  invoiceId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"FinancialTransaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"FinancialTransaction"> | $Enums.TransactionStatus
   description?: Prisma.StringFilter<"FinancialTransaction"> | string
@@ -216,6 +224,7 @@ export type FinancialTransactionWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"FinancialTransaction"> | Date | string
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
+  invoice?: Prisma.XOR<Prisma.CreditCardInvoiceNullableScalarRelationFilter, Prisma.CreditCardInvoiceWhereInput> | null
   entries?: Prisma.LedgerEntryListRelationFilter
 }
 
@@ -223,6 +232,7 @@ export type FinancialTransactionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  invoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -231,6 +241,7 @@ export type FinancialTransactionOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
+  invoice?: Prisma.CreditCardInvoiceOrderByWithRelationInput
   entries?: Prisma.LedgerEntryOrderByRelationAggregateInput
 }
 
@@ -241,6 +252,7 @@ export type FinancialTransactionWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.FinancialTransactionWhereInput | Prisma.FinancialTransactionWhereInput[]
   workspaceId?: Prisma.StringFilter<"FinancialTransaction"> | string
   categoryId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
+  invoiceId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"FinancialTransaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"FinancialTransaction"> | $Enums.TransactionStatus
   description?: Prisma.StringFilter<"FinancialTransaction"> | string
@@ -249,6 +261,7 @@ export type FinancialTransactionWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"FinancialTransaction"> | Date | string
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
+  invoice?: Prisma.XOR<Prisma.CreditCardInvoiceNullableScalarRelationFilter, Prisma.CreditCardInvoiceWhereInput> | null
   entries?: Prisma.LedgerEntryListRelationFilter
 }, "id">
 
@@ -256,6 +269,7 @@ export type FinancialTransactionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  invoiceId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -274,6 +288,7 @@ export type FinancialTransactionScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"FinancialTransaction"> | string
   workspaceId?: Prisma.StringWithAggregatesFilter<"FinancialTransaction"> | string
   categoryId?: Prisma.StringNullableWithAggregatesFilter<"FinancialTransaction"> | string | null
+  invoiceId?: Prisma.StringNullableWithAggregatesFilter<"FinancialTransaction"> | string | null
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"FinancialTransaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"FinancialTransaction"> | $Enums.TransactionStatus
   description?: Prisma.StringWithAggregatesFilter<"FinancialTransaction"> | string
@@ -292,6 +307,7 @@ export type FinancialTransactionCreateInput = {
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutTransactionsInput
   category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  invoice?: Prisma.CreditCardInvoiceCreateNestedOneWithoutTransactionsInput
   entries?: Prisma.LedgerEntryCreateNestedManyWithoutTransactionInput
 }
 
@@ -299,6 +315,7 @@ export type FinancialTransactionUncheckedCreateInput = {
   id?: string
   workspaceId: string
   categoryId?: string | null
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -318,6 +335,7 @@ export type FinancialTransactionUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutTransactionsNestedInput
   category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  invoice?: Prisma.CreditCardInvoiceUpdateOneWithoutTransactionsNestedInput
   entries?: Prisma.LedgerEntryUpdateManyWithoutTransactionNestedInput
 }
 
@@ -325,6 +343,7 @@ export type FinancialTransactionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -338,6 +357,7 @@ export type FinancialTransactionCreateManyInput = {
   id?: string
   workspaceId: string
   categoryId?: string | null
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -360,6 +380,7 @@ export type FinancialTransactionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -382,6 +403,7 @@ export type FinancialTransactionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  invoiceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -394,6 +416,7 @@ export type FinancialTransactionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  invoiceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -406,6 +429,7 @@ export type FinancialTransactionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  invoiceId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   description?: Prisma.SortOrder
@@ -458,6 +482,48 @@ export type FinancialTransactionUncheckedUpdateManyWithoutWorkspaceNestedInput =
   connect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
   update?: Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutWorkspaceInput | Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutWorkspaceInput[]
   updateMany?: Prisma.FinancialTransactionUpdateManyWithWhereWithoutWorkspaceInput | Prisma.FinancialTransactionUpdateManyWithWhereWithoutWorkspaceInput[]
+  deleteMany?: Prisma.FinancialTransactionScalarWhereInput | Prisma.FinancialTransactionScalarWhereInput[]
+}
+
+export type FinancialTransactionCreateNestedManyWithoutInvoiceInput = {
+  create?: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput> | Prisma.FinancialTransactionCreateWithoutInvoiceInput[] | Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput[]
+  connectOrCreate?: Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput | Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput[]
+  createMany?: Prisma.FinancialTransactionCreateManyInvoiceInputEnvelope
+  connect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+}
+
+export type FinancialTransactionUncheckedCreateNestedManyWithoutInvoiceInput = {
+  create?: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput> | Prisma.FinancialTransactionCreateWithoutInvoiceInput[] | Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput[]
+  connectOrCreate?: Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput | Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput[]
+  createMany?: Prisma.FinancialTransactionCreateManyInvoiceInputEnvelope
+  connect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+}
+
+export type FinancialTransactionUpdateManyWithoutInvoiceNestedInput = {
+  create?: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput> | Prisma.FinancialTransactionCreateWithoutInvoiceInput[] | Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput[]
+  connectOrCreate?: Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput | Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput[]
+  upsert?: Prisma.FinancialTransactionUpsertWithWhereUniqueWithoutInvoiceInput | Prisma.FinancialTransactionUpsertWithWhereUniqueWithoutInvoiceInput[]
+  createMany?: Prisma.FinancialTransactionCreateManyInvoiceInputEnvelope
+  set?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  disconnect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  delete?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  connect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  update?: Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutInvoiceInput | Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutInvoiceInput[]
+  updateMany?: Prisma.FinancialTransactionUpdateManyWithWhereWithoutInvoiceInput | Prisma.FinancialTransactionUpdateManyWithWhereWithoutInvoiceInput[]
+  deleteMany?: Prisma.FinancialTransactionScalarWhereInput | Prisma.FinancialTransactionScalarWhereInput[]
+}
+
+export type FinancialTransactionUncheckedUpdateManyWithoutInvoiceNestedInput = {
+  create?: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput> | Prisma.FinancialTransactionCreateWithoutInvoiceInput[] | Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput[]
+  connectOrCreate?: Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput | Prisma.FinancialTransactionCreateOrConnectWithoutInvoiceInput[]
+  upsert?: Prisma.FinancialTransactionUpsertWithWhereUniqueWithoutInvoiceInput | Prisma.FinancialTransactionUpsertWithWhereUniqueWithoutInvoiceInput[]
+  createMany?: Prisma.FinancialTransactionCreateManyInvoiceInputEnvelope
+  set?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  disconnect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  delete?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  connect?: Prisma.FinancialTransactionWhereUniqueInput | Prisma.FinancialTransactionWhereUniqueInput[]
+  update?: Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutInvoiceInput | Prisma.FinancialTransactionUpdateWithWhereUniqueWithoutInvoiceInput[]
+  updateMany?: Prisma.FinancialTransactionUpdateManyWithWhereWithoutInvoiceInput | Prisma.FinancialTransactionUpdateManyWithWhereWithoutInvoiceInput[]
   deleteMany?: Prisma.FinancialTransactionScalarWhereInput | Prisma.FinancialTransactionScalarWhereInput[]
 }
 
@@ -534,12 +600,14 @@ export type FinancialTransactionCreateWithoutWorkspaceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  invoice?: Prisma.CreditCardInvoiceCreateNestedOneWithoutTransactionsInput
   entries?: Prisma.LedgerEntryCreateNestedManyWithoutTransactionInput
 }
 
 export type FinancialTransactionUncheckedCreateWithoutWorkspaceInput = {
   id?: string
   categoryId?: string | null
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -582,12 +650,65 @@ export type FinancialTransactionScalarWhereInput = {
   id?: Prisma.StringFilter<"FinancialTransaction"> | string
   workspaceId?: Prisma.StringFilter<"FinancialTransaction"> | string
   categoryId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
+  invoiceId?: Prisma.StringNullableFilter<"FinancialTransaction"> | string | null
   type?: Prisma.EnumTransactionTypeFilter<"FinancialTransaction"> | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFilter<"FinancialTransaction"> | $Enums.TransactionStatus
   description?: Prisma.StringFilter<"FinancialTransaction"> | string
   transactionDate?: Prisma.DateTimeFilter<"FinancialTransaction"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"FinancialTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"FinancialTransaction"> | Date | string
+}
+
+export type FinancialTransactionCreateWithoutInvoiceInput = {
+  id?: string
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  transactionDate: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutTransactionsInput
+  category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  entries?: Prisma.LedgerEntryCreateNestedManyWithoutTransactionInput
+}
+
+export type FinancialTransactionUncheckedCreateWithoutInvoiceInput = {
+  id?: string
+  workspaceId: string
+  categoryId?: string | null
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  transactionDate: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  entries?: Prisma.LedgerEntryUncheckedCreateNestedManyWithoutTransactionInput
+}
+
+export type FinancialTransactionCreateOrConnectWithoutInvoiceInput = {
+  where: Prisma.FinancialTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput>
+}
+
+export type FinancialTransactionCreateManyInvoiceInputEnvelope = {
+  data: Prisma.FinancialTransactionCreateManyInvoiceInput | Prisma.FinancialTransactionCreateManyInvoiceInput[]
+  skipDuplicates?: boolean
+}
+
+export type FinancialTransactionUpsertWithWhereUniqueWithoutInvoiceInput = {
+  where: Prisma.FinancialTransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.FinancialTransactionUpdateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedUpdateWithoutInvoiceInput>
+  create: Prisma.XOR<Prisma.FinancialTransactionCreateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedCreateWithoutInvoiceInput>
+}
+
+export type FinancialTransactionUpdateWithWhereUniqueWithoutInvoiceInput = {
+  where: Prisma.FinancialTransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.FinancialTransactionUpdateWithoutInvoiceInput, Prisma.FinancialTransactionUncheckedUpdateWithoutInvoiceInput>
+}
+
+export type FinancialTransactionUpdateManyWithWhereWithoutInvoiceInput = {
+  where: Prisma.FinancialTransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.FinancialTransactionUpdateManyMutationInput, Prisma.FinancialTransactionUncheckedUpdateManyWithoutInvoiceInput>
 }
 
 export type FinancialTransactionCreateWithoutCategoryInput = {
@@ -599,12 +720,14 @@ export type FinancialTransactionCreateWithoutCategoryInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutTransactionsInput
+  invoice?: Prisma.CreditCardInvoiceCreateNestedOneWithoutTransactionsInput
   entries?: Prisma.LedgerEntryCreateNestedManyWithoutTransactionInput
 }
 
 export type FinancialTransactionUncheckedCreateWithoutCategoryInput = {
   id?: string
   workspaceId: string
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -650,12 +773,14 @@ export type FinancialTransactionCreateWithoutEntriesInput = {
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutTransactionsInput
   category?: Prisma.CategoryCreateNestedOneWithoutTransactionsInput
+  invoice?: Prisma.CreditCardInvoiceCreateNestedOneWithoutTransactionsInput
 }
 
 export type FinancialTransactionUncheckedCreateWithoutEntriesInput = {
   id?: string
   workspaceId: string
   categoryId?: string | null
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -690,12 +815,14 @@ export type FinancialTransactionUpdateWithoutEntriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutTransactionsNestedInput
   category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  invoice?: Prisma.CreditCardInvoiceUpdateOneWithoutTransactionsNestedInput
 }
 
 export type FinancialTransactionUncheckedUpdateWithoutEntriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -707,6 +834,7 @@ export type FinancialTransactionUncheckedUpdateWithoutEntriesInput = {
 export type FinancialTransactionCreateManyWorkspaceInput = {
   id?: string
   categoryId?: string | null
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -724,12 +852,14 @@ export type FinancialTransactionUpdateWithoutWorkspaceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  invoice?: Prisma.CreditCardInvoiceUpdateOneWithoutTransactionsNestedInput
   entries?: Prisma.LedgerEntryUpdateManyWithoutTransactionNestedInput
 }
 
 export type FinancialTransactionUncheckedUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -742,6 +872,57 @@ export type FinancialTransactionUncheckedUpdateWithoutWorkspaceInput = {
 export type FinancialTransactionUncheckedUpdateManyWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type FinancialTransactionCreateManyInvoiceInput = {
+  id?: string
+  workspaceId: string
+  categoryId?: string | null
+  type: $Enums.TransactionType
+  status?: $Enums.TransactionStatus
+  description: string
+  transactionDate: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type FinancialTransactionUpdateWithoutInvoiceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutTransactionsNestedInput
+  category?: Prisma.CategoryUpdateOneWithoutTransactionsNestedInput
+  entries?: Prisma.LedgerEntryUpdateManyWithoutTransactionNestedInput
+}
+
+export type FinancialTransactionUncheckedUpdateWithoutInvoiceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  transactionDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  entries?: Prisma.LedgerEntryUncheckedUpdateManyWithoutTransactionNestedInput
+}
+
+export type FinancialTransactionUncheckedUpdateManyWithoutInvoiceInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -753,6 +934,7 @@ export type FinancialTransactionUncheckedUpdateManyWithoutWorkspaceInput = {
 export type FinancialTransactionCreateManyCategoryInput = {
   id?: string
   workspaceId: string
+  invoiceId?: string | null
   type: $Enums.TransactionType
   status?: $Enums.TransactionStatus
   description: string
@@ -770,12 +952,14 @@ export type FinancialTransactionUpdateWithoutCategoryInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutTransactionsNestedInput
+  invoice?: Prisma.CreditCardInvoiceUpdateOneWithoutTransactionsNestedInput
   entries?: Prisma.LedgerEntryUpdateManyWithoutTransactionNestedInput
 }
 
 export type FinancialTransactionUncheckedUpdateWithoutCategoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -788,6 +972,7 @@ export type FinancialTransactionUncheckedUpdateWithoutCategoryInput = {
 export type FinancialTransactionUncheckedUpdateManyWithoutCategoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  invoiceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
   description?: Prisma.StringFieldUpdateOperationsInput | string
@@ -831,6 +1016,7 @@ export type FinancialTransactionSelect<ExtArgs extends runtime.Types.Extensions.
   id?: boolean
   workspaceId?: boolean
   categoryId?: boolean
+  invoiceId?: boolean
   type?: boolean
   status?: boolean
   description?: boolean
@@ -839,6 +1025,7 @@ export type FinancialTransactionSelect<ExtArgs extends runtime.Types.Extensions.
   updatedAt?: boolean
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
   entries?: boolean | Prisma.FinancialTransaction$entriesArgs<ExtArgs>
   _count?: boolean | Prisma.FinancialTransactionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["financialTransaction"]>
@@ -847,6 +1034,7 @@ export type FinancialTransactionSelectCreateManyAndReturn<ExtArgs extends runtim
   id?: boolean
   workspaceId?: boolean
   categoryId?: boolean
+  invoiceId?: boolean
   type?: boolean
   status?: boolean
   description?: boolean
@@ -855,12 +1043,14 @@ export type FinancialTransactionSelectCreateManyAndReturn<ExtArgs extends runtim
   updatedAt?: boolean
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
 }, ExtArgs["result"]["financialTransaction"]>
 
 export type FinancialTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   workspaceId?: boolean
   categoryId?: boolean
+  invoiceId?: boolean
   type?: boolean
   status?: boolean
   description?: boolean
@@ -869,12 +1059,14 @@ export type FinancialTransactionSelectUpdateManyAndReturn<ExtArgs extends runtim
   updatedAt?: boolean
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
 }, ExtArgs["result"]["financialTransaction"]>
 
 export type FinancialTransactionSelectScalar = {
   id?: boolean
   workspaceId?: boolean
   categoryId?: boolean
+  invoiceId?: boolean
   type?: boolean
   status?: boolean
   description?: boolean
@@ -883,20 +1075,23 @@ export type FinancialTransactionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type FinancialTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "categoryId" | "type" | "status" | "description" | "transactionDate" | "createdAt" | "updatedAt", ExtArgs["result"]["financialTransaction"]>
+export type FinancialTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "categoryId" | "invoiceId" | "type" | "status" | "description" | "transactionDate" | "createdAt" | "updatedAt", ExtArgs["result"]["financialTransaction"]>
 export type FinancialTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
   entries?: boolean | Prisma.FinancialTransaction$entriesArgs<ExtArgs>
   _count?: boolean | Prisma.FinancialTransactionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FinancialTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
 }
 export type FinancialTransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   category?: boolean | Prisma.FinancialTransaction$categoryArgs<ExtArgs>
+  invoice?: boolean | Prisma.FinancialTransaction$invoiceArgs<ExtArgs>
 }
 
 export type $FinancialTransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -904,12 +1099,14 @@ export type $FinancialTransactionPayload<ExtArgs extends runtime.Types.Extension
   objects: {
     workspace: Prisma.$WorkspacePayload<ExtArgs>
     category: Prisma.$CategoryPayload<ExtArgs> | null
+    invoice: Prisma.$CreditCardInvoicePayload<ExtArgs> | null
     entries: Prisma.$LedgerEntryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     workspaceId: string
     categoryId: string | null
+    invoiceId: string | null
     type: $Enums.TransactionType
     status: $Enums.TransactionStatus
     description: string
@@ -1312,6 +1509,7 @@ export interface Prisma__FinancialTransactionClient<T, Null = never, ExtArgs ext
   readonly [Symbol.toStringTag]: "PrismaPromise"
   workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   category<T extends Prisma.FinancialTransaction$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FinancialTransaction$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  invoice<T extends Prisma.FinancialTransaction$invoiceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FinancialTransaction$invoiceArgs<ExtArgs>>): Prisma.Prisma__CreditCardInvoiceClient<runtime.Types.Result.GetResult<Prisma.$CreditCardInvoicePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   entries<T extends Prisma.FinancialTransaction$entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FinancialTransaction$entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LedgerEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1345,6 +1543,7 @@ export interface FinancialTransactionFieldRefs {
   readonly id: Prisma.FieldRef<"FinancialTransaction", 'String'>
   readonly workspaceId: Prisma.FieldRef<"FinancialTransaction", 'String'>
   readonly categoryId: Prisma.FieldRef<"FinancialTransaction", 'String'>
+  readonly invoiceId: Prisma.FieldRef<"FinancialTransaction", 'String'>
   readonly type: Prisma.FieldRef<"FinancialTransaction", 'TransactionType'>
   readonly status: Prisma.FieldRef<"FinancialTransaction", 'TransactionStatus'>
   readonly description: Prisma.FieldRef<"FinancialTransaction", 'String'>
@@ -1768,6 +1967,25 @@ export type FinancialTransaction$categoryArgs<ExtArgs extends runtime.Types.Exte
    */
   include?: Prisma.CategoryInclude<ExtArgs> | null
   where?: Prisma.CategoryWhereInput
+}
+
+/**
+ * FinancialTransaction.invoice
+ */
+export type FinancialTransaction$invoiceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CreditCardInvoice
+   */
+  select?: Prisma.CreditCardInvoiceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CreditCardInvoice
+   */
+  omit?: Prisma.CreditCardInvoiceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CreditCardInvoiceInclude<ExtArgs> | null
+  where?: Prisma.CreditCardInvoiceWhereInput
 }
 
 /**

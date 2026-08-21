@@ -69,13 +69,15 @@ export async function creditCardsRoutes(
       }
 
       try {
-        const creditCard = await createCreditCard({
-          workspaceId: request.workspace.id,
-          accountId,
-          creditLimit,
-          closingDay,
-          dueDay,
-        });
+        const creditCard =
+          await createCreditCard({
+            workspaceId:
+              request.workspace.id,
+            accountId,
+            creditLimit,
+            closingDay,
+            dueDay,
+          });
 
         return reply.status(201).send({
           status: 'success',
@@ -85,13 +87,16 @@ export async function creditCardsRoutes(
         if (
           error instanceof Error &&
           (
-            error.message === 'Account not found' ||
+            error.message ===
+              'Account not found' ||
             error.message ===
               'Account must be a credit card account' ||
             error.message ===
               'Credit limit must be greater than zero' ||
-            error.message === 'Invalid closing day' ||
-            error.message === 'Invalid due day' ||
+            error.message ===
+              'Invalid closing day' ||
+            error.message ===
+              'Invalid due day' ||
             error.message ===
               'Credit card already configured for this account'
           )
@@ -116,15 +121,17 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
       try {
-        const creditCard = await getCreditCard(
-          request.workspace.id,
-          accountId,
-        );
+        const creditCard =
+          await getCreditCard(
+            request.workspace.id,
+            accountId,
+          );
 
         return reply.status(200).send({
           status: 'success',
@@ -133,7 +140,8 @@ export async function creditCardsRoutes(
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message === 'Credit card not found'
+          error.message ===
+            'Credit card not found'
         ) {
           return reply.status(404).send({
             status: 'error',
@@ -155,15 +163,17 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
       try {
-        const limit = await getCreditCardLimit(
-          request.workspace.id,
-          accountId,
-        );
+        const limit =
+          await getCreditCardLimit(
+            request.workspace.id,
+            accountId,
+          );
 
         return reply.status(200).send({
           status: 'success',
@@ -172,7 +182,8 @@ export async function creditCardsRoutes(
       } catch (error) {
         if (
           error instanceof Error &&
-          error.message === 'Credit card not found'
+          error.message ===
+            'Credit card not found'
         ) {
           return reply.status(404).send({
             status: 'error',
@@ -199,9 +210,10 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
       const {
         categoryId,
@@ -227,21 +239,30 @@ export async function creditCardsRoutes(
         });
       }
 
-      const parsedDate = new Date(transactionDate);
+      const parsedDate =
+        new Date(transactionDate);
 
-      if (Number.isNaN(parsedDate.getTime())) {
+      if (
+        Number.isNaN(
+          parsedDate.getTime(),
+        )
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid transaction date',
+          message:
+            'Invalid transaction date',
         });
       }
 
       try {
-        const transaction =
+        const result =
           await createCreditCardPurchase({
-            workspaceId: request.workspace.id,
+            workspaceId:
+              request.workspace.id,
             accountId,
-            ...(categoryId ? { categoryId } : {}),
+            ...(categoryId
+              ? { categoryId }
+              : {}),
             amount,
             description,
             transactionDate: parsedDate,
@@ -249,7 +270,7 @@ export async function creditCardsRoutes(
 
         return reply.status(201).send({
           status: 'success',
-          transaction,
+          ...result,
         });
       } catch (error) {
         if (
@@ -262,7 +283,13 @@ export async function creditCardsRoutes(
             error.message ===
               'Description is required' ||
             error.message ===
-              'Category not found'
+              'Category not found' ||
+            error.message ===
+              'Invalid transaction date' ||
+            error.message ===
+              'Invoice for this purchase cycle is already paid' ||
+            error.message ===
+              'Invoice is not open'
           )
         ) {
           return reply.status(400).send({
@@ -301,9 +328,10 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
       const {
         month,
@@ -319,17 +347,20 @@ export async function creditCardsRoutes(
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Month and year are required',
+          message:
+            'Month and year are required',
         });
       }
 
       try {
-        const invoice = await createInvoice({
-          workspaceId: request.workspace.id,
-          accountId,
-          month,
-          year,
-        });
+        const invoice =
+          await createInvoice({
+            workspaceId:
+              request.workspace.id,
+            accountId,
+            month,
+            year,
+          });
 
         return reply.status(201).send({
           status: 'success',
@@ -341,9 +372,12 @@ export async function creditCardsRoutes(
           (
             error.message ===
               'Credit card not found' ||
-            error.message === 'Invalid month' ||
-            error.message === 'Invalid year' ||
-            error.message === 'Invoice already exists'
+            error.message ===
+              'Invalid month' ||
+            error.message ===
+              'Invalid year' ||
+            error.message ===
+              'Invoice already exists'
           )
         ) {
           return reply.status(400).send({
@@ -366,14 +400,16 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { accountId } = request.params as {
-        accountId: string;
-      };
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
 
-      const invoices = await listInvoices(
-        request.workspace.id,
-        accountId,
-      );
+      const invoices =
+        await listInvoices(
+          request.workspace.id,
+          accountId,
+        );
 
       return reply.status(200).send({
         status: 'success',
@@ -396,9 +432,10 @@ export async function creditCardsRoutes(
       ],
     },
     async (request, reply) => {
-      const { invoiceId } = request.params as {
-        invoiceId: string;
-      };
+      const { invoiceId } =
+        request.params as {
+          invoiceId: string;
+        };
 
       const {
         paymentAccountId,
@@ -408,7 +445,10 @@ export async function creditCardsRoutes(
         paymentDate?: string;
       };
 
-      if (!paymentAccountId || !paymentDate) {
+      if (
+        !paymentAccountId ||
+        !paymentDate
+      ) {
         return reply.status(400).send({
           status: 'error',
           message:
@@ -416,19 +456,26 @@ export async function creditCardsRoutes(
         });
       }
 
-      const parsedDate = new Date(paymentDate);
+      const parsedDate =
+        new Date(paymentDate);
 
-      if (Number.isNaN(parsedDate.getTime())) {
+      if (
+        Number.isNaN(
+          parsedDate.getTime(),
+        )
+      ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid payment date',
+          message:
+            'Invalid payment date',
         });
       }
 
       try {
         const result =
           await payCreditCardInvoice({
-            workspaceId: request.workspace.id,
+            workspaceId:
+              request.workspace.id,
             invoiceId,
             paymentAccountId,
             paymentDate: parsedDate,
@@ -439,12 +486,15 @@ export async function creditCardsRoutes(
           payment: result,
         });
       } catch (error) {
-        if (!(error instanceof Error)) {
+        if (
+          !(error instanceof Error)
+        ) {
           throw error;
         }
 
         if (
-          error.message === 'Invoice not found'
+          error.message ===
+          'Invoice not found'
         ) {
           return reply.status(404).send({
             status: 'error',
@@ -461,7 +511,9 @@ export async function creditCardsRoutes(
         ];
 
         if (
-          badRequestErrors.includes(error.message)
+          badRequestErrors.includes(
+            error.message,
+          )
         ) {
           return reply.status(400).send({
             status: 'error',
