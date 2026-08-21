@@ -239,6 +239,138 @@ export async function getDashboard(
       };
     });
 
+  /*
+   * Evolução financeira dos últimos 6 meses.
+   *
+   * Essa informação é independente do filtro
+   * principal do Dashboard para permitir que o
+   * frontend sempre tenha dados para o gráfico.
+   */
+
+  const currentDate = new Date();
+
+  const monthlyStart = new Date(
+    Date.UTC(
+      currentDate.getUTCFullYear(),
+      currentDate.getUTCMonth() - 5,
+      1,
+    ),
+  );
+
+  const monthlyTransactions =
+    await prisma.financialTransaction.findMany({
+      where: {
+        workspaceId,
+        status: 'POSTED',
+        type: {
+          in: ['INCOME', 'EXPENSE'],
+        },
+        transactionDate: {
+          gte: monthlyStart,
+        },
+      },
+      select: {
+        type: true,
+        transactionDate: true,
+        entries: {
+          select: {
+            amount: true,
+          },
+        },
+      },
+      orderBy: {
+        transactionDate: 'asc',
+      },
+    });
+
+  const monthlyMap = new Map<
+    string,
+    {
+      month: number;
+      year: number;
+      income: Prisma.Decimal;
+      expense: Prisma.Decimal;
+    }
+  >();
+
+  for (let index = 0; index < 6; index++) {
+    const date = new Date(
+      Date.UTC(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth() - index,
+        1,
+      ),
+    );
+
+    const month =
+      date.getUTCMonth() + 1;
+
+    const year =
+      date.getUTCFullYear();
+
+    const key = `${year}-${month}`;
+
+    monthlyMap.set(key, {
+      month,
+      year,
+      income: new Prisma.Decimal(0),
+      expense: new Prisma.Decimal(0),
+    });
+  }
+
+  for (const transaction of monthlyTransactions) {
+    const month =
+      transaction.transactionDate.getUTCMonth() + 1;
+
+    const year =
+      transaction.transactionDate.getUTCFullYear();
+
+    const key = `${year}-${month}`;
+
+    const monthlyData =
+      monthlyMap.get(key);
+
+    if (!monthlyData) {
+      continue;
+    }
+
+    let amount = new Prisma.Decimal(0);
+
+    for (const entry of transaction.entries) {
+      amount = amount.plus(entry.amount);
+    }
+
+    if (transaction.type === 'INCOME') {
+      monthlyData.income =
+        monthlyData.income.plus(amount);
+    }
+
+    if (transaction.type === 'EXPENSE') {
+      monthlyData.expense =
+        monthlyData.expense.plus(amount);
+    }
+  }
+
+  const monthlyEvolution = Array.from(
+    monthlyMap.values(),
+  )
+    .sort((a, b) => {
+      if (a.year !== b.year) {
+        return a.year - b.year;
+      }
+
+      return a.month - b.month;
+    })
+    .map((month) => ({
+      month: month.month,
+      year: month.year,
+      income: month.income,
+      expense: month.expense,
+      netResult: month.income.minus(
+        month.expense,
+      ),
+    }));
+
   let totalCreditLimit = new Prisma.Decimal(0);
   let totalCreditUsed = new Prisma.Decimal(0);
   let totalCreditAvailable =
@@ -354,6 +486,8 @@ export async function getDashboard(
     netResult,
 
     expenseByCategory,
+
+    monthlyEvolution,
 
     accountCount: accounts.length,
     accounts: accountBalances,
