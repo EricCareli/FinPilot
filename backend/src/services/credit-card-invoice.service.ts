@@ -10,6 +10,11 @@ export interface CreateInvoiceInput {
   year: number;
 }
 
+export interface CloseInvoiceInput {
+  workspaceId: string;
+  invoiceId: string;
+}
+
 function getLastDayOfMonth(
   year: number,
   month: number,
@@ -37,6 +42,18 @@ function createSafeDate(
       year,
       month - 1,
       safeDay,
+    ),
+  );
+}
+
+function getStartOfTodayUtc(): Date {
+  const now = new Date();
+
+  return new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
     ),
   );
 }
@@ -115,6 +132,29 @@ function getInvoiceDates(
     periodStart,
     periodEnd,
   };
+}
+
+async function markOverdueInvoices(
+  creditCardId: string,
+) {
+  const today =
+    getStartOfTodayUtc();
+
+  await prisma.creditCardInvoice.updateMany({
+    where: {
+      creditCardId,
+      status: 'CLOSED',
+      dueDate: {
+        lt: today,
+      },
+      totalAmount: {
+        gt: new Prisma.Decimal(0),
+      },
+    },
+    data: {
+      status: 'OVERDUE',
+    },
+  });
 }
 
 export async function createInvoice(
@@ -211,10 +251,8 @@ export async function createInvoice(
             type: 'EXPENSE',
             status: 'POSTED',
             transactionDate: {
-              gte:
-                periodStart,
-              lt:
-                periodEnd,
+              gte: periodStart,
+              lt: periodEnd,
             },
             entries: {
               some: {
@@ -303,6 +341,121 @@ export async function createInvoice(
   );
 }
 
+export async function closeCreditCardInvoice(
+  input: CloseInvoiceInput,
+) {
+  return prisma.$transaction(
+    async (tx) => {
+      const invoice =
+        await tx.creditCardInvoice.findFirst({
+          where: {
+            id:
+              input.invoiceId,
+            creditCard: {
+              account: {
+                workspaceId:
+                  input.workspaceId,
+                status: 'ACTIVE',
+                type: 'CREDIT_CARD',
+              },
+            },
+          },
+          include: {
+            creditCard: {
+              include: {
+                account: true,
+              },
+            },
+          },
+        });
+
+      if (!invoice) {
+        throw new AppError(
+          'Invoice not found',
+          404,
+        );
+      }
+
+      if (
+        invoice.status === 'PAID'
+      ) {
+        throw new AppError(
+          'Paid invoices cannot be closed',
+          400,
+        );
+      }
+
+      if (
+        invoice.status === 'CLOSED' ||
+        invoice.status === 'OVERDUE'
+      ) {
+        throw new AppError(
+          'Invoice is already closed',
+          400,
+        );
+      }
+
+      if (
+        invoice.status !== 'OPEN'
+      ) {
+        throw new AppError(
+          'Invoice cannot be closed',
+          400,
+        );
+      }
+
+      const entries =
+        await tx.ledgerEntry.findMany({
+          where: {
+            accountId:
+              invoice.creditCard.accountId,
+            type: 'DEBIT',
+            transaction: {
+              workspaceId:
+                input.workspaceId,
+              invoiceId:
+                invoice.id,
+              status: 'POSTED',
+              type: 'EXPENSE',
+            },
+          },
+          select: {
+            amount: true,
+          },
+        });
+
+      let totalAmount =
+        new Prisma.Decimal(0);
+
+      for (const entry of entries) {
+        totalAmount =
+          totalAmount.plus(
+            entry.amount,
+          );
+      }
+
+      const today =
+        getStartOfTodayUtc();
+
+      const status =
+        invoice.dueDate < today &&
+        totalAmount.gt(0)
+          ? 'OVERDUE'
+          : 'CLOSED';
+
+      return tx.creditCardInvoice.update({
+        where: {
+          id: invoice.id,
+        },
+        data: {
+          totalAmount,
+          status,
+        },
+      });
+    },
+  );
+}
+
 export async function listInvoices(
   workspaceId: string,
   accountId: string,
@@ -329,6 +482,10 @@ export async function listInvoices(
     );
   }
 
+  await markOverdueInvoices(
+    creditCard.id,
+  );
+
   return prisma.creditCardInvoice.findMany({
     where: {
       creditCardId:
@@ -336,12 +493,10 @@ export async function listInvoices(
     },
     orderBy: [
       {
-        referenceYear:
-          'desc',
+        referenceYear: 'desc',
       },
       {
-        referenceMonth:
-          'desc',
+        referenceMonth: 'desc',
       },
     ],
   });

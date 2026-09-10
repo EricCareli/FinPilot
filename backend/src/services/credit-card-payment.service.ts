@@ -18,7 +18,8 @@ export async function payCreditCardInvoice(
       const invoice =
         await tx.creditCardInvoice.findFirst({
           where: {
-            id: input.invoiceId,
+            id:
+              input.invoiceId,
             creditCard: {
               account: {
                 workspaceId:
@@ -44,10 +45,10 @@ export async function payCreditCardInvoice(
       }
 
       if (
-        invoice.status !== 'OPEN'
+        invoice.status === 'PAID'
       ) {
         throw new AppError(
-          'Invoice is not open',
+          'Invoice is already paid',
           400,
         );
       }
@@ -134,9 +135,9 @@ export async function payCreditCardInvoice(
         });
 
       /*
-       * IMPORTANT:
-       * initialBalance is already represented
-       * by an ADJUSTMENT ledger entry.
+       * initialBalance is already
+       * represented in the ledger
+       * through an ADJUSTMENT entry.
        */
       let balance =
         new Prisma.Decimal(0);
@@ -210,7 +211,8 @@ export async function payCreditCardInvoice(
       const paidInvoice =
         await tx.creditCardInvoice.update({
           where: {
-            id: invoice.id,
+            id:
+              invoice.id,
           },
           data: {
             status: 'PAID',

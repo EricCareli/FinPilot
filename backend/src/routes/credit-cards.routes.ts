@@ -20,6 +20,7 @@ import {
 } from '../services/credit-card-purchase.service.js';
 
 import {
+  closeCreditCardInvoice,
   createInvoice,
   listInvoices,
 } from '../services/credit-card-invoice.service.js';
@@ -70,47 +71,20 @@ export async function creditCardsRoutes(
         });
       }
 
-      try {
-        const creditCard =
-          await createCreditCard({
-            workspaceId:
-              request.workspace.id,
-            accountId,
-            creditLimit,
-            closingDay,
-            dueDay,
-          });
-
-        return reply.status(201).send({
-          status: 'success',
-          creditCard,
+      const creditCard =
+        await createCreditCard({
+          workspaceId:
+            request.workspace.id,
+          accountId,
+          creditLimit,
+          closingDay,
+          dueDay,
         });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (
-            error.message ===
-              'Account not found' ||
-            error.message ===
-              'Account must be a credit card account' ||
-            error.message ===
-              'Credit limit must be greater than zero' ||
-            error.message ===
-              'Invalid closing day' ||
-            error.message ===
-              'Invalid due day' ||
-            error.message ===
-              'Credit card already configured for this account'
-          )
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
 
-        throw error;
-      }
+      return reply.status(201).send({
+        status: 'success',
+        creditCard,
+      });
     },
   );
 
@@ -128,32 +102,16 @@ export async function creditCardsRoutes(
           accountId: string;
         };
 
-      try {
-        const creditCard =
-          await getCreditCard(
-            request.workspace.id,
-            accountId,
-          );
+      const creditCard =
+        await getCreditCard(
+          request.workspace.id,
+          accountId,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          creditCard,
-        });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Credit card not found'
-        ) {
-          return reply.status(404).send({
-            status: 'error',
-            message:
-              'Credit card not found',
-          });
-        }
-
-        throw error;
-      }
+      return reply.status(200).send({
+        status: 'success',
+        creditCard,
+      });
     },
   );
 
@@ -171,32 +129,16 @@ export async function creditCardsRoutes(
           accountId: string;
         };
 
-      try {
-        const limit =
-          await getCreditCardLimit(
-            request.workspace.id,
-            accountId,
-          );
+      const limit =
+        await getCreditCardLimit(
+          request.workspace.id,
+          accountId,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          limit,
-        });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Credit card not found'
-        ) {
-          return reply.status(404).send({
-            status: 'error',
-            message:
-              'Credit card not found',
-          });
-        }
-
-        throw error;
-      }
+      return reply.status(200).send({
+        status: 'success',
+        limit,
+      });
     },
   );
 
@@ -479,6 +421,39 @@ export async function creditCardsRoutes(
       return reply.status(200).send({
         status: 'success',
         invoices,
+      });
+    },
+  );
+
+  app.post(
+    '/credit-cards/invoices/:invoiceId/close',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { invoiceId } =
+        request.params as {
+          invoiceId: string;
+        };
+
+      const invoice =
+        await closeCreditCardInvoice({
+          workspaceId:
+            request.workspace.id,
+          invoiceId,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        invoice,
       });
     },
   );
