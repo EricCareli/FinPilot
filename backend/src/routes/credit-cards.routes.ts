@@ -38,6 +38,10 @@ import {
   voidCreditCardInstallmentPurchase,
 } from '../services/credit-card-installment.service.js';
 
+import {
+  refundCreditCardInstallmentPurchase,
+} from '../services/credit-card-installment-refund.service.js';
+
 export async function creditCardsRoutes(
   app: FastifyInstance,
 ): Promise<void> {
@@ -471,6 +475,76 @@ export async function creditCardsRoutes(
       return reply.status(200).send({
         status: 'success',
         installmentPurchase,
+      });
+    },
+  );
+
+  /*
+   * REEMBOLSO
+   *
+   * Usado quando pelo menos uma parcela
+   * já pertence a fatura fechada,
+   * vencida ou paga.
+   */
+  app.post(
+    '/credit-cards/installment-purchases/:purchaseId/refund',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        financeRoles,
+      ],
+    },
+    async (request, reply) => {
+      const { purchaseId } =
+        request.params as {
+          purchaseId: string;
+        };
+
+      const {
+        refundDate,
+      } = request.body as {
+        refundDate?: string;
+      };
+
+      if (!refundDate) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Refund date is required',
+        });
+      }
+
+      const parsedRefundDate =
+        new Date(
+          refundDate,
+        );
+
+      if (
+        Number.isNaN(
+          parsedRefundDate.getTime(),
+        )
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Invalid refund date',
+        });
+      }
+
+      const result =
+        await refundCreditCardInstallmentPurchase({
+          workspaceId:
+            request.workspace.id,
+          installmentPurchaseId:
+            purchaseId,
+          refundDate:
+            parsedRefundDate,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        ...result,
       });
     },
   );

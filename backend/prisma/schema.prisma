@@ -81,6 +81,7 @@ enum RecurringStatus {
 enum InstallmentPurchaseStatus {
   ACTIVE
   VOIDED
+  REFUNDED
 }
 
 model User {
@@ -204,10 +205,11 @@ model CreditCardInstallmentPurchase {
   createdAt        DateTime                  @default(now())
   updatedAt        DateTime                  @updatedAt
 
-  workspace    Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creditCard   CreditCard             @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
-  category     Category?              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  transactions FinancialTransaction[]
+  workspace         Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creditCard        CreditCard             @relation(fields: [creditCardId], references: [id], onDelete: Cascade)
+  category          Category?              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  transactions      FinancialTransaction[] @relation("InstallmentPurchaseTransactions")
+  refundTransaction FinancialTransaction?  @relation("InstallmentPurchaseRefund")
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -236,24 +238,26 @@ model Category {
 }
 
 model FinancialTransaction {
-  id                    String            @id @default(uuid())
-  workspaceId           String
-  categoryId            String?
-  invoiceId             String?
-  installmentPurchaseId String?
-  installmentNumber     Int?
-  type                  TransactionType
-  status                TransactionStatus @default(POSTED)
-  description           String
-  transactionDate       DateTime
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
+  id                             String            @id @default(uuid())
+  workspaceId                    String
+  categoryId                     String?
+  invoiceId                      String?
+  installmentPurchaseId          String?
+  refundForInstallmentPurchaseId String?           @unique
+  installmentNumber              Int?
+  type                           TransactionType
+  status                         TransactionStatus @default(POSTED)
+  description                    String
+  transactionDate                DateTime
+  createdAt                      DateTime          @default(now())
+  updatedAt                      DateTime          @updatedAt
 
-  workspace           Workspace                      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  category            Category?                      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  invoice             CreditCardInvoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  installmentPurchase CreditCardInstallmentPurchase? @relation(fields: [installmentPurchaseId], references: [id], onDelete: SetNull)
-  entries             LedgerEntry[]
+  workspace                    Workspace                      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category                     Category?                      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  invoice                      CreditCardInvoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  installmentPurchase          CreditCardInstallmentPurchase? @relation("InstallmentPurchaseTransactions", fields: [installmentPurchaseId], references: [id], onDelete: SetNull)
+  refundForInstallmentPurchase CreditCardInstallmentPurchase? @relation("InstallmentPurchaseRefund", fields: [refundForInstallmentPurchaseId], references: [id], onDelete: SetNull)
+  entries                      LedgerEntry[]
 
   @@unique([installmentPurchaseId, installmentNumber])
   @@index([workspaceId])

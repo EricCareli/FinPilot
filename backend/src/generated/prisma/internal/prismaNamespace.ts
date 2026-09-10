@@ -1544,6 +1544,7 @@ export const FinancialTransactionScalarFieldEnum = {
   categoryId: 'categoryId',
   invoiceId: 'invoiceId',
   installmentPurchaseId: 'installmentPurchaseId',
+  refundForInstallmentPurchaseId: 'refundForInstallmentPurchaseId',
   installmentNumber: 'installmentNumber',
   type: 'type',
   status: 'status',

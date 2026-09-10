@@ -272,6 +272,7 @@ export type CreditCardInstallmentPurchaseWhereInput = {
   creditCard?: Prisma.XOR<Prisma.CreditCardScalarRelationFilter, Prisma.CreditCardWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   transactions?: Prisma.FinancialTransactionListRelationFilter
+  refundTransaction?: Prisma.XOR<Prisma.FinancialTransactionNullableScalarRelationFilter, Prisma.FinancialTransactionWhereInput> | null
 }
 
 export type CreditCardInstallmentPurchaseOrderByWithRelationInput = {
@@ -290,6 +291,7 @@ export type CreditCardInstallmentPurchaseOrderByWithRelationInput = {
   creditCard?: Prisma.CreditCardOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
   transactions?: Prisma.FinancialTransactionOrderByRelationAggregateInput
+  refundTransaction?: Prisma.FinancialTransactionOrderByWithRelationInput
 }
 
 export type CreditCardInstallmentPurchaseWhereUniqueInput = Prisma.AtLeast<{
@@ -311,6 +313,7 @@ export type CreditCardInstallmentPurchaseWhereUniqueInput = Prisma.AtLeast<{
   creditCard?: Prisma.XOR<Prisma.CreditCardScalarRelationFilter, Prisma.CreditCardWhereInput>
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
   transactions?: Prisma.FinancialTransactionListRelationFilter
+  refundTransaction?: Prisma.XOR<Prisma.FinancialTransactionNullableScalarRelationFilter, Prisma.FinancialTransactionWhereInput> | null
 }, "id">
 
 export type CreditCardInstallmentPurchaseOrderByWithAggregationInput = {
@@ -362,6 +365,7 @@ export type CreditCardInstallmentPurchaseCreateInput = {
   creditCard: Prisma.CreditCardCreateNestedOneWithoutInstallmentPurchasesInput
   category?: Prisma.CategoryCreateNestedOneWithoutInstallmentPurchasesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedCreateInput = {
@@ -377,6 +381,7 @@ export type CreditCardInstallmentPurchaseUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUpdateInput = {
@@ -392,6 +397,7 @@ export type CreditCardInstallmentPurchaseUpdateInput = {
   creditCard?: Prisma.CreditCardUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutInstallmentPurchasesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateInput = {
@@ -407,6 +413,7 @@ export type CreditCardInstallmentPurchaseUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseCreateManyInput = {
@@ -655,6 +662,12 @@ export type CreditCardInstallmentPurchaseCreateNestedOneWithoutTransactionsInput
   connect?: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
 }
 
+export type CreditCardInstallmentPurchaseCreateNestedOneWithoutRefundTransactionInput = {
+  create?: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutRefundTransactionInput>
+  connectOrCreate?: Prisma.CreditCardInstallmentPurchaseCreateOrConnectWithoutRefundTransactionInput
+  connect?: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
+}
+
 export type CreditCardInstallmentPurchaseUpdateOneWithoutTransactionsNestedInput = {
   create?: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutTransactionsInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.CreditCardInstallmentPurchaseCreateOrConnectWithoutTransactionsInput
@@ -663,6 +676,16 @@ export type CreditCardInstallmentPurchaseUpdateOneWithoutTransactionsNestedInput
   delete?: Prisma.CreditCardInstallmentPurchaseWhereInput | boolean
   connect?: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.CreditCardInstallmentPurchaseUpdateToOneWithWhereWithoutTransactionsInput, Prisma.CreditCardInstallmentPurchaseUpdateWithoutTransactionsInput>, Prisma.CreditCardInstallmentPurchaseUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type CreditCardInstallmentPurchaseUpdateOneWithoutRefundTransactionNestedInput = {
+  create?: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutRefundTransactionInput>
+  connectOrCreate?: Prisma.CreditCardInstallmentPurchaseCreateOrConnectWithoutRefundTransactionInput
+  upsert?: Prisma.CreditCardInstallmentPurchaseUpsertWithoutRefundTransactionInput
+  disconnect?: Prisma.CreditCardInstallmentPurchaseWhereInput | boolean
+  delete?: Prisma.CreditCardInstallmentPurchaseWhereInput | boolean
+  connect?: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CreditCardInstallmentPurchaseUpdateToOneWithWhereWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUpdateWithoutRefundTransactionInput>, Prisma.CreditCardInstallmentPurchaseUncheckedUpdateWithoutRefundTransactionInput>
 }
 
 export type CreditCardInstallmentPurchaseCreateWithoutWorkspaceInput = {
@@ -677,6 +700,7 @@ export type CreditCardInstallmentPurchaseCreateWithoutWorkspaceInput = {
   creditCard: Prisma.CreditCardCreateNestedOneWithoutInstallmentPurchasesInput
   category?: Prisma.CategoryCreateNestedOneWithoutInstallmentPurchasesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedCreateWithoutWorkspaceInput = {
@@ -691,6 +715,7 @@ export type CreditCardInstallmentPurchaseUncheckedCreateWithoutWorkspaceInput = 
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseCreateOrConnectWithoutWorkspaceInput = {
@@ -748,6 +773,7 @@ export type CreditCardInstallmentPurchaseCreateWithoutCreditCardInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInstallmentPurchasesInput
   category?: Prisma.CategoryCreateNestedOneWithoutInstallmentPurchasesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedCreateWithoutCreditCardInput = {
@@ -762,6 +788,7 @@ export type CreditCardInstallmentPurchaseUncheckedCreateWithoutCreditCardInput =
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseCreateOrConnectWithoutCreditCardInput = {
@@ -802,6 +829,7 @@ export type CreditCardInstallmentPurchaseCreateWithoutCategoryInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInstallmentPurchasesInput
   creditCard: Prisma.CreditCardCreateNestedOneWithoutInstallmentPurchasesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedCreateWithoutCategoryInput = {
@@ -816,6 +844,7 @@ export type CreditCardInstallmentPurchaseUncheckedCreateWithoutCategoryInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutInstallmentPurchaseInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseCreateOrConnectWithoutCategoryInput = {
@@ -856,6 +885,7 @@ export type CreditCardInstallmentPurchaseCreateWithoutTransactionsInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInstallmentPurchasesInput
   creditCard: Prisma.CreditCardCreateNestedOneWithoutInstallmentPurchasesInput
   category?: Prisma.CategoryCreateNestedOneWithoutInstallmentPurchasesInput
+  refundTransaction?: Prisma.FinancialTransactionCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedCreateWithoutTransactionsInput = {
@@ -870,11 +900,47 @@ export type CreditCardInstallmentPurchaseUncheckedCreateWithoutTransactionsInput
   status?: $Enums.InstallmentPurchaseStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  refundTransaction?: Prisma.FinancialTransactionUncheckedCreateNestedOneWithoutRefundForInstallmentPurchaseInput
 }
 
 export type CreditCardInstallmentPurchaseCreateOrConnectWithoutTransactionsInput = {
   where: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
   create: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutTransactionsInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutTransactionsInput>
+}
+
+export type CreditCardInstallmentPurchaseCreateWithoutRefundTransactionInput = {
+  id?: string
+  description: string
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  installmentCount: number
+  purchaseDate: Date | string
+  status?: $Enums.InstallmentPurchaseStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutInstallmentPurchasesInput
+  creditCard: Prisma.CreditCardCreateNestedOneWithoutInstallmentPurchasesInput
+  category?: Prisma.CategoryCreateNestedOneWithoutInstallmentPurchasesInput
+  transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutInstallmentPurchaseInput
+}
+
+export type CreditCardInstallmentPurchaseUncheckedCreateWithoutRefundTransactionInput = {
+  id?: string
+  workspaceId: string
+  creditCardId: string
+  categoryId?: string | null
+  description: string
+  totalAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  installmentCount: number
+  purchaseDate: Date | string
+  status?: $Enums.InstallmentPurchaseStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutInstallmentPurchaseInput
+}
+
+export type CreditCardInstallmentPurchaseCreateOrConnectWithoutRefundTransactionInput = {
+  where: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
+  create: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutRefundTransactionInput>
 }
 
 export type CreditCardInstallmentPurchaseUpsertWithoutTransactionsInput = {
@@ -900,6 +966,7 @@ export type CreditCardInstallmentPurchaseUpdateWithoutTransactionsInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   creditCard?: Prisma.CreditCardUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutInstallmentPurchasesNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutTransactionsInput = {
@@ -914,6 +981,48 @@ export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutTransactionsInput
   status?: Prisma.EnumInstallmentPurchaseStatusFieldUpdateOperationsInput | $Enums.InstallmentPurchaseStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refundTransaction?: Prisma.FinancialTransactionUncheckedUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
+}
+
+export type CreditCardInstallmentPurchaseUpsertWithoutRefundTransactionInput = {
+  update: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseUpdateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedUpdateWithoutRefundTransactionInput>
+  create: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutRefundTransactionInput>
+  where?: Prisma.CreditCardInstallmentPurchaseWhereInput
+}
+
+export type CreditCardInstallmentPurchaseUpdateToOneWithWhereWithoutRefundTransactionInput = {
+  where?: Prisma.CreditCardInstallmentPurchaseWhereInput
+  data: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseUpdateWithoutRefundTransactionInput, Prisma.CreditCardInstallmentPurchaseUncheckedUpdateWithoutRefundTransactionInput>
+}
+
+export type CreditCardInstallmentPurchaseUpdateWithoutRefundTransactionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  purchaseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumInstallmentPurchaseStatusFieldUpdateOperationsInput | $Enums.InstallmentPurchaseStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
+  creditCard?: Prisma.CreditCardUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
+  category?: Prisma.CategoryUpdateOneWithoutInstallmentPurchasesNestedInput
+  transactions?: Prisma.FinancialTransactionUpdateManyWithoutInstallmentPurchaseNestedInput
+}
+
+export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutRefundTransactionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  creditCardId?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  totalAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
+  purchaseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.EnumInstallmentPurchaseStatusFieldUpdateOperationsInput | $Enums.InstallmentPurchaseStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseCreateManyWorkspaceInput = {
@@ -941,6 +1050,7 @@ export type CreditCardInstallmentPurchaseUpdateWithoutWorkspaceInput = {
   creditCard?: Prisma.CreditCardUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutInstallmentPurchasesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutWorkspaceInput = {
@@ -955,6 +1065,7 @@ export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutWorkspaceInput = 
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -995,6 +1106,7 @@ export type CreditCardInstallmentPurchaseUpdateWithoutCreditCardInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutInstallmentPurchasesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutCreditCardInput = {
@@ -1009,6 +1121,7 @@ export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutCreditCardInput =
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCreditCardInput = {
@@ -1049,6 +1162,7 @@ export type CreditCardInstallmentPurchaseUpdateWithoutCategoryInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   creditCard?: Prisma.CreditCardUpdateOneRequiredWithoutInstallmentPurchasesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutCategoryInput = {
@@ -1063,6 +1177,7 @@ export type CreditCardInstallmentPurchaseUncheckedUpdateWithoutCategoryInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutInstallmentPurchaseNestedInput
+  refundTransaction?: Prisma.FinancialTransactionUncheckedUpdateOneWithoutRefundForInstallmentPurchaseNestedInput
 }
 
 export type CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryInput = {
@@ -1125,6 +1240,7 @@ export type CreditCardInstallmentPurchaseSelect<ExtArgs extends runtime.Types.Ex
   creditCard?: boolean | Prisma.CreditCardDefaultArgs<ExtArgs>
   category?: boolean | Prisma.CreditCardInstallmentPurchase$categoryArgs<ExtArgs>
   transactions?: boolean | Prisma.CreditCardInstallmentPurchase$transactionsArgs<ExtArgs>
+  refundTransaction?: boolean | Prisma.CreditCardInstallmentPurchase$refundTransactionArgs<ExtArgs>
   _count?: boolean | Prisma.CreditCardInstallmentPurchaseCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["creditCardInstallmentPurchase"]>
 
@@ -1182,6 +1298,7 @@ export type CreditCardInstallmentPurchaseInclude<ExtArgs extends runtime.Types.E
   creditCard?: boolean | Prisma.CreditCardDefaultArgs<ExtArgs>
   category?: boolean | Prisma.CreditCardInstallmentPurchase$categoryArgs<ExtArgs>
   transactions?: boolean | Prisma.CreditCardInstallmentPurchase$transactionsArgs<ExtArgs>
+  refundTransaction?: boolean | Prisma.CreditCardInstallmentPurchase$refundTransactionArgs<ExtArgs>
   _count?: boolean | Prisma.CreditCardInstallmentPurchaseCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CreditCardInstallmentPurchaseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1202,6 +1319,7 @@ export type $CreditCardInstallmentPurchasePayload<ExtArgs extends runtime.Types.
     creditCard: Prisma.$CreditCardPayload<ExtArgs>
     category: Prisma.$CategoryPayload<ExtArgs> | null
     transactions: Prisma.$FinancialTransactionPayload<ExtArgs>[]
+    refundTransaction: Prisma.$FinancialTransactionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1613,6 +1731,7 @@ export interface Prisma__CreditCardInstallmentPurchaseClient<T, Null = never, Ex
   creditCard<T extends Prisma.CreditCardDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CreditCardDefaultArgs<ExtArgs>>): Prisma.Prisma__CreditCardClient<runtime.Types.Result.GetResult<Prisma.$CreditCardPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   category<T extends Prisma.CreditCardInstallmentPurchase$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CreditCardInstallmentPurchase$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   transactions<T extends Prisma.CreditCardInstallmentPurchase$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CreditCardInstallmentPurchase$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FinancialTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  refundTransaction<T extends Prisma.CreditCardInstallmentPurchase$refundTransactionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CreditCardInstallmentPurchase$refundTransactionArgs<ExtArgs>>): Prisma.Prisma__FinancialTransactionClient<runtime.Types.Result.GetResult<Prisma.$FinancialTransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2094,6 +2213,25 @@ export type CreditCardInstallmentPurchase$transactionsArgs<ExtArgs extends runti
   take?: number
   skip?: number
   distinct?: Prisma.FinancialTransactionScalarFieldEnum | Prisma.FinancialTransactionScalarFieldEnum[]
+}
+
+/**
+ * CreditCardInstallmentPurchase.refundTransaction
+ */
+export type CreditCardInstallmentPurchase$refundTransactionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FinancialTransaction
+   */
+  select?: Prisma.FinancialTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FinancialTransaction
+   */
+  omit?: Prisma.FinancialTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FinancialTransactionInclude<ExtArgs> | null
+  where?: Prisma.FinancialTransactionWhereInput
 }
 
 /**
