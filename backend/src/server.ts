@@ -5,6 +5,7 @@ import jwt from '@fastify/jwt';
 import { healthRoutes } from './routes/health.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { usersRoutes } from './routes/users.routes.js';
+import { workspacesRoutes } from './routes/workspaces.routes.js';
 import { accountsRoutes } from './routes/accounts.routes.js';
 import { categoriesRoutes } from './routes/categories.routes.js';
 import { transactionsRoutes } from './routes/transactions.routes.js';
@@ -125,6 +126,7 @@ async function buildServer() {
   await healthRoutes(app);
   await authRoutes(app);
   await usersRoutes(app);
+  await workspacesRoutes(app);
   await accountsRoutes(app);
   await categoriesRoutes(app);
   await transactionsRoutes(app);
