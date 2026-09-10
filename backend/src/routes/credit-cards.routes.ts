@@ -15,6 +15,8 @@ import {
 
 import {
   createCreditCardPurchase,
+  updateCreditCardPurchase,
+  voidCreditCardPurchase,
 } from '../services/credit-card-purchase.service.js';
 
 import {
@@ -145,7 +147,8 @@ export async function creditCardsRoutes(
         ) {
           return reply.status(404).send({
             status: 'error',
-            message: 'Credit card not found',
+            message:
+              'Credit card not found',
           });
         }
 
@@ -187,7 +190,8 @@ export async function creditCardsRoutes(
         ) {
           return reply.status(404).send({
             status: 'error',
-            message: 'Credit card not found',
+            message:
+              'Credit card not found',
           });
         }
 
@@ -254,63 +258,147 @@ export async function creditCardsRoutes(
         });
       }
 
-      try {
-        const result =
-          await createCreditCardPurchase({
-            workspaceId:
-              request.workspace.id,
-            accountId,
-            ...(categoryId
-              ? { categoryId }
-              : {}),
-            amount,
-            description,
-            transactionDate: parsedDate,
-          });
-
-        return reply.status(201).send({
-          status: 'success',
-          ...result,
+      const result =
+        await createCreditCardPurchase({
+          workspaceId:
+            request.workspace.id,
+          accountId,
+          ...(categoryId
+            ? { categoryId }
+            : {}),
+          amount,
+          description,
+          transactionDate:
+            parsedDate,
         });
-      } catch (error) {
+
+      return reply.status(201).send({
+        status: 'success',
+        ...result,
+      });
+    },
+  );
+
+  app.patch(
+    '/credit-cards/purchases/:transactionId',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { transactionId } =
+        request.params as {
+          transactionId: string;
+        };
+
+      const {
+        categoryId,
+        amount,
+        description,
+        transactionDate,
+      } = request.body as {
+        categoryId?: string | null;
+        amount?: number;
+        description?: string;
+        transactionDate?: string;
+      };
+
+      let parsedDate:
+        | Date
+        | undefined;
+
+      if (
+        transactionDate !== undefined
+      ) {
+        parsedDate =
+          new Date(
+            transactionDate,
+          );
+
         if (
-          error instanceof Error &&
-          (
-            error.message ===
-              'Credit card not found' ||
-            error.message ===
-              'Purchase amount must be greater than zero' ||
-            error.message ===
-              'Description is required' ||
-            error.message ===
-              'Category not found' ||
-            error.message ===
-              'Invalid transaction date' ||
-            error.message ===
-              'Invoice for this purchase cycle is already paid' ||
-            error.message ===
-              'Invoice is not open'
+          Number.isNaN(
+            parsedDate.getTime(),
           )
         ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
+          return reply
+            .status(400)
+            .send({
+              status: 'error',
+              message:
+                'Invalid transaction date',
+            });
         }
-
-        if (
-          error instanceof Error &&
-          error.message ===
-            'Insufficient credit limit'
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        throw error;
       }
+
+      const purchase =
+        await updateCreditCardPurchase({
+          workspaceId:
+            request.workspace.id,
+          transactionId,
+          ...(categoryId !==
+          undefined
+            ? { categoryId }
+            : {}),
+          ...(amount !== undefined
+            ? { amount }
+            : {}),
+          ...(description !==
+          undefined
+            ? { description }
+            : {}),
+          ...(parsedDate !==
+          undefined
+            ? {
+                transactionDate:
+                  parsedDate,
+              }
+            : {}),
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        purchase,
+      });
+    },
+  );
+
+  app.post(
+    '/credit-cards/purchases/:transactionId/void',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { transactionId } =
+        request.params as {
+          transactionId: string;
+        };
+
+      const purchase =
+        await voidCreditCardPurchase({
+          workspaceId:
+            request.workspace.id,
+          transactionId,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        purchase,
+      });
     },
   );
 
@@ -352,42 +440,19 @@ export async function creditCardsRoutes(
         });
       }
 
-      try {
-        const invoice =
-          await createInvoice({
-            workspaceId:
-              request.workspace.id,
-            accountId,
-            month,
-            year,
-          });
-
-        return reply.status(201).send({
-          status: 'success',
-          invoice,
+      const invoice =
+        await createInvoice({
+          workspaceId:
+            request.workspace.id,
+          accountId,
+          month,
+          year,
         });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (
-            error.message ===
-              'Credit card not found' ||
-            error.message ===
-              'Invalid month' ||
-            error.message ===
-              'Invalid year' ||
-            error.message ===
-              'Invoice already exists'
-          )
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
 
-        throw error;
-      }
+      return reply.status(201).send({
+        status: 'success',
+        invoice,
+      });
     },
   );
 
@@ -471,58 +536,20 @@ export async function creditCardsRoutes(
         });
       }
 
-      try {
-        const result =
-          await payCreditCardInvoice({
-            workspaceId:
-              request.workspace.id,
-            invoiceId,
-            paymentAccountId,
-            paymentDate: parsedDate,
-          });
-
-        return reply.status(200).send({
-          status: 'success',
-          payment: result,
+      const result =
+        await payCreditCardInvoice({
+          workspaceId:
+            request.workspace.id,
+          invoiceId,
+          paymentAccountId,
+          paymentDate:
+            parsedDate,
         });
-      } catch (error) {
-        if (
-          !(error instanceof Error)
-        ) {
-          throw error;
-        }
 
-        if (
-          error.message ===
-          'Invoice not found'
-        ) {
-          return reply.status(404).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        const badRequestErrors = [
-          'Invoice is not open',
-          'Payment account not found',
-          'Payment account cannot be a credit card',
-          'Payment account currency does not match invoice currency',
-          'Insufficient funds',
-        ];
-
-        if (
-          badRequestErrors.includes(
-            error.message,
-          )
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        throw error;
-      }
+      return reply.status(200).send({
+        status: 'success',
+        payment: result,
+      });
     },
   );
 }
