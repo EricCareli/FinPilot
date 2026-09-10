@@ -111,3 +111,11 @@ export const RecurringStatus = {
 } as const
 
 export type RecurringStatus = (typeof RecurringStatus)[keyof typeof RecurringStatus]
+
+
+export const InstallmentPurchaseStatus = {
+  ACTIVE: 'ACTIVE',
+  VOIDED: 'VOIDED'
+} as const
+
+export type InstallmentPurchaseStatus = (typeof InstallmentPurchaseStatus)[keyof typeof InstallmentPurchaseStatus]

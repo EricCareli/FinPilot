@@ -57,6 +57,7 @@ export const ModelName = {
   Account: 'Account',
   CreditCard: 'CreditCard',
   CreditCardInvoice: 'CreditCardInvoice',
+  CreditCardInstallmentPurchase: 'CreditCardInstallmentPurchase',
   Category: 'Category',
   FinancialTransaction: 'FinancialTransaction',
   LedgerEntry: 'LedgerEntry',
@@ -160,6 +161,23 @@ export const CreditCardInvoiceScalarFieldEnum = {
 export type CreditCardInvoiceScalarFieldEnum = (typeof CreditCardInvoiceScalarFieldEnum)[keyof typeof CreditCardInvoiceScalarFieldEnum]
 
 
+export const CreditCardInstallmentPurchaseScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  creditCardId: 'creditCardId',
+  categoryId: 'categoryId',
+  description: 'description',
+  totalAmount: 'totalAmount',
+  installmentCount: 'installmentCount',
+  purchaseDate: 'purchaseDate',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CreditCardInstallmentPurchaseScalarFieldEnum = (typeof CreditCardInstallmentPurchaseScalarFieldEnum)[keyof typeof CreditCardInstallmentPurchaseScalarFieldEnum]
+
+
 export const CategoryScalarFieldEnum = {
   id: 'id',
   workspaceId: 'workspaceId',
@@ -177,6 +195,8 @@ export const FinancialTransactionScalarFieldEnum = {
   workspaceId: 'workspaceId',
   categoryId: 'categoryId',
   invoiceId: 'invoiceId',
+  installmentPurchaseId: 'installmentPurchaseId',
+  installmentNumber: 'installmentNumber',
   type: 'type',
   status: 'status',
   description: 'description',

@@ -72,6 +72,11 @@ export type CreditCard = Prisma.CreditCardModel
  */
 export type CreditCardInvoice = Prisma.CreditCardInvoiceModel
 /**
+ * Model CreditCardInstallmentPurchase
+ * 
+ */
+export type CreditCardInstallmentPurchase = Prisma.CreditCardInstallmentPurchaseModel
+/**
  * Model Category
  * 
  */

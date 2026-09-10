@@ -29,20 +29,31 @@ import {
   payCreditCardInvoice,
 } from '../services/credit-card-payment.service.js';
 
+import {
+  assertStandaloneCreditCardPurchase,
+  createCreditCardInstallmentPurchase,
+  getCreditCardInstallmentPurchase,
+  listCreditCardInstallmentPurchases,
+  voidCreditCardInstallmentPurchase,
+} from '../services/credit-card-installment.service.js';
+
 export async function creditCardsRoutes(
   app: FastifyInstance,
 ): Promise<void> {
+  const financeRoles =
+    requireWorkspaceRoles(
+      'OWNER',
+      'ADMIN',
+      'FINANCE',
+    );
+
   app.post(
     '/credit-cards',
     {
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -142,17 +153,16 @@ export async function creditCardsRoutes(
     },
   );
 
+  /*
+   * COMPRA À VISTA
+   */
   app.post(
     '/credit-cards/:accountId/purchases',
     {
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -186,7 +196,9 @@ export async function creditCardsRoutes(
       }
 
       const parsedDate =
-        new Date(transactionDate);
+        new Date(
+          transactionDate,
+        );
 
       if (
         Number.isNaN(
@@ -206,7 +218,9 @@ export async function creditCardsRoutes(
             request.workspace.id,
           accountId,
           ...(categoryId
-            ? { categoryId }
+            ? {
+                categoryId,
+              }
             : {}),
           amount,
           description,
@@ -221,17 +235,190 @@ export async function creditCardsRoutes(
     },
   );
 
+  /*
+   * COMPRA PARCELADA
+   */
+  app.post(
+    '/credit-cards/:accountId/installment-purchases',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        financeRoles,
+      ],
+    },
+    async (request, reply) => {
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
+
+      const {
+        categoryId,
+        totalAmount,
+        description,
+        installmentCount,
+        purchaseDate,
+      } = request.body as {
+        categoryId?: string;
+        totalAmount?: number;
+        description?: string;
+        installmentCount?: number;
+        purchaseDate?: string;
+      };
+
+      if (
+        totalAmount === undefined ||
+        !description ||
+        installmentCount ===
+          undefined ||
+        !purchaseDate
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Total amount, description, installmentCount and purchaseDate are required',
+        });
+      }
+
+      const parsedPurchaseDate =
+        new Date(
+          purchaseDate,
+        );
+
+      if (
+        Number.isNaN(
+          parsedPurchaseDate.getTime(),
+        )
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Invalid purchase date',
+        });
+      }
+
+      const installmentPurchase =
+        await createCreditCardInstallmentPurchase({
+          workspaceId:
+            request.workspace.id,
+          accountId,
+          ...(categoryId
+            ? {
+                categoryId,
+              }
+            : {}),
+          totalAmount,
+          description,
+          installmentCount,
+          purchaseDate:
+            parsedPurchaseDate,
+        });
+
+      return reply.status(201).send({
+        status: 'success',
+        installmentPurchase,
+      });
+    },
+  );
+
+  app.get(
+    '/credit-cards/:accountId/installment-purchases',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+      ],
+    },
+    async (request, reply) => {
+      const { accountId } =
+        request.params as {
+          accountId: string;
+        };
+
+      const installmentPurchases =
+        await listCreditCardInstallmentPurchases(
+          request.workspace.id,
+          accountId,
+        );
+
+      return reply.status(200).send({
+        status: 'success',
+        installmentPurchases,
+      });
+    },
+  );
+
+  app.get(
+    '/credit-cards/installment-purchases/:purchaseId',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+      ],
+    },
+    async (request, reply) => {
+      const { purchaseId } =
+        request.params as {
+          purchaseId: string;
+        };
+
+      const installmentPurchase =
+        await getCreditCardInstallmentPurchase(
+          request.workspace.id,
+          purchaseId,
+        );
+
+      return reply.status(200).send({
+        status: 'success',
+        installmentPurchase,
+      });
+    },
+  );
+
+  app.post(
+    '/credit-cards/installment-purchases/:purchaseId/void',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        financeRoles,
+      ],
+    },
+    async (request, reply) => {
+      const { purchaseId } =
+        request.params as {
+          purchaseId: string;
+        };
+
+      const installmentPurchase =
+        await voidCreditCardInstallmentPurchase({
+          workspaceId:
+            request.workspace.id,
+          installmentPurchaseId:
+            purchaseId,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        installmentPurchase,
+      });
+    },
+  );
+
+  /*
+   * EDIÇÃO DE COMPRA À VISTA
+   *
+   * Uma parcela individual não pode usar
+   * este endpoint.
+   */
   app.patch(
     '/credit-cards/purchases/:transactionId',
     {
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -246,7 +433,9 @@ export async function creditCardsRoutes(
         description,
         transactionDate,
       } = request.body as {
-        categoryId?: string | null;
+        categoryId?:
+          | string
+          | null;
         amount?: number;
         description?: string;
         transactionDate?: string;
@@ -279,6 +468,11 @@ export async function creditCardsRoutes(
         }
       }
 
+      await assertStandaloneCreditCardPurchase(
+        request.workspace.id,
+        transactionId,
+      );
+
       const purchase =
         await updateCreditCardPurchase({
           workspaceId:
@@ -286,14 +480,20 @@ export async function creditCardsRoutes(
           transactionId,
           ...(categoryId !==
           undefined
-            ? { categoryId }
+            ? {
+                categoryId,
+              }
             : {}),
           ...(amount !== undefined
-            ? { amount }
+            ? {
+                amount,
+              }
             : {}),
           ...(description !==
           undefined
-            ? { description }
+            ? {
+                description,
+              }
             : {}),
           ...(parsedDate !==
           undefined
@@ -317,11 +517,7 @@ export async function creditCardsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -329,6 +525,11 @@ export async function creditCardsRoutes(
         request.params as {
           transactionId: string;
         };
+
+      await assertStandaloneCreditCardPurchase(
+        request.workspace.id,
+        transactionId,
+      );
 
       const purchase =
         await voidCreditCardPurchase({
@@ -344,17 +545,16 @@ export async function creditCardsRoutes(
     },
   );
 
+  /*
+   * FATURAS
+   */
   app.post(
     '/credit-cards/:accountId/invoices',
     {
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -431,11 +631,7 @@ export async function creditCardsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -464,11 +660,7 @@ export async function creditCardsRoutes(
       preHandler: [
         authenticate,
         workspaceMiddleware,
-        requireWorkspaceRoles(
-          'OWNER',
-          'ADMIN',
-          'FINANCE',
-        ),
+        financeRoles,
       ],
     },
     async (request, reply) => {
@@ -497,7 +689,9 @@ export async function creditCardsRoutes(
       }
 
       const parsedDate =
-        new Date(paymentDate);
+        new Date(
+          paymentDate,
+        );
 
       if (
         Number.isNaN(

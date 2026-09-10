@@ -194,6 +194,7 @@ export type CategoryWhereInput = {
   transactions?: Prisma.FinancialTransactionListRelationFilter
   budgets?: Prisma.BudgetListRelationFilter
   recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseListRelationFilter
 }
 
 export type CategoryOrderByWithRelationInput = {
@@ -207,6 +208,7 @@ export type CategoryOrderByWithRelationInput = {
   transactions?: Prisma.FinancialTransactionOrderByRelationAggregateInput
   budgets?: Prisma.BudgetOrderByRelationAggregateInput
   recurringTransactions?: Prisma.RecurringTransactionOrderByRelationAggregateInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseOrderByRelationAggregateInput
 }
 
 export type CategoryWhereUniqueInput = Prisma.AtLeast<{
@@ -224,6 +226,7 @@ export type CategoryWhereUniqueInput = Prisma.AtLeast<{
   transactions?: Prisma.FinancialTransactionListRelationFilter
   budgets?: Prisma.BudgetListRelationFilter
   recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseListRelationFilter
 }, "id" | "workspaceId_name_type">
 
 export type CategoryOrderByWithAggregationInput = {
@@ -260,6 +263,7 @@ export type CategoryCreateInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUncheckedCreateInput = {
@@ -272,6 +276,7 @@ export type CategoryUncheckedCreateInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUpdateInput = {
@@ -284,6 +289,7 @@ export type CategoryUpdateInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateInput = {
@@ -296,6 +302,7 @@ export type CategoryUncheckedUpdateInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryCreateManyInput = {
@@ -334,6 +341,11 @@ export type CategoryOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type CategoryNullableScalarRelationFilter = {
+  is?: Prisma.CategoryWhereInput | null
+  isNot?: Prisma.CategoryWhereInput | null
+}
+
 export type CategoryWorkspaceIdNameTypeCompoundUniqueInput = {
   workspaceId: string
   name: string
@@ -365,11 +377,6 @@ export type CategoryMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-}
-
-export type CategoryNullableScalarRelationFilter = {
-  is?: Prisma.CategoryWhereInput | null
-  isNot?: Prisma.CategoryWhereInput | null
 }
 
 export type CategoryScalarRelationFilter = {
@@ -417,6 +424,22 @@ export type CategoryUncheckedUpdateManyWithoutWorkspaceNestedInput = {
   update?: Prisma.CategoryUpdateWithWhereUniqueWithoutWorkspaceInput | Prisma.CategoryUpdateWithWhereUniqueWithoutWorkspaceInput[]
   updateMany?: Prisma.CategoryUpdateManyWithWhereWithoutWorkspaceInput | Prisma.CategoryUpdateManyWithWhereWithoutWorkspaceInput[]
   deleteMany?: Prisma.CategoryScalarWhereInput | Prisma.CategoryScalarWhereInput[]
+}
+
+export type CategoryCreateNestedOneWithoutInstallmentPurchasesInput = {
+  create?: Prisma.XOR<Prisma.CategoryCreateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedCreateWithoutInstallmentPurchasesInput>
+  connectOrCreate?: Prisma.CategoryCreateOrConnectWithoutInstallmentPurchasesInput
+  connect?: Prisma.CategoryWhereUniqueInput
+}
+
+export type CategoryUpdateOneWithoutInstallmentPurchasesNestedInput = {
+  create?: Prisma.XOR<Prisma.CategoryCreateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedCreateWithoutInstallmentPurchasesInput>
+  connectOrCreate?: Prisma.CategoryCreateOrConnectWithoutInstallmentPurchasesInput
+  upsert?: Prisma.CategoryUpsertWithoutInstallmentPurchasesInput
+  disconnect?: Prisma.CategoryWhereInput | boolean
+  delete?: Prisma.CategoryWhereInput | boolean
+  connect?: Prisma.CategoryWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CategoryUpdateToOneWithWhereWithoutInstallmentPurchasesInput, Prisma.CategoryUpdateWithoutInstallmentPurchasesInput>, Prisma.CategoryUncheckedUpdateWithoutInstallmentPurchasesInput>
 }
 
 export type EnumTransactionTypeFieldUpdateOperationsInput = {
@@ -478,6 +501,7 @@ export type CategoryCreateWithoutWorkspaceInput = {
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUncheckedCreateWithoutWorkspaceInput = {
@@ -489,6 +513,7 @@ export type CategoryUncheckedCreateWithoutWorkspaceInput = {
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryCreateOrConnectWithoutWorkspaceInput = {
@@ -529,6 +554,70 @@ export type CategoryScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Category"> | Date | string
 }
 
+export type CategoryCreateWithoutInstallmentPurchasesInput = {
+  id?: string
+  name: string
+  type: $Enums.TransactionType
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutCategoriesInput
+  transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutCategoryInput
+  budgets?: Prisma.BudgetCreateNestedManyWithoutCategoryInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutCategoryInput
+}
+
+export type CategoryUncheckedCreateWithoutInstallmentPurchasesInput = {
+  id?: string
+  workspaceId: string
+  name: string
+  type: $Enums.TransactionType
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutCategoryInput
+  budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutCategoryInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutCategoryInput
+}
+
+export type CategoryCreateOrConnectWithoutInstallmentPurchasesInput = {
+  where: Prisma.CategoryWhereUniqueInput
+  create: Prisma.XOR<Prisma.CategoryCreateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedCreateWithoutInstallmentPurchasesInput>
+}
+
+export type CategoryUpsertWithoutInstallmentPurchasesInput = {
+  update: Prisma.XOR<Prisma.CategoryUpdateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedUpdateWithoutInstallmentPurchasesInput>
+  create: Prisma.XOR<Prisma.CategoryCreateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedCreateWithoutInstallmentPurchasesInput>
+  where?: Prisma.CategoryWhereInput
+}
+
+export type CategoryUpdateToOneWithWhereWithoutInstallmentPurchasesInput = {
+  where?: Prisma.CategoryWhereInput
+  data: Prisma.XOR<Prisma.CategoryUpdateWithoutInstallmentPurchasesInput, Prisma.CategoryUncheckedUpdateWithoutInstallmentPurchasesInput>
+}
+
+export type CategoryUpdateWithoutInstallmentPurchasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutCategoriesNestedInput
+  transactions?: Prisma.FinancialTransactionUpdateManyWithoutCategoryNestedInput
+  budgets?: Prisma.BudgetUpdateManyWithoutCategoryNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutCategoryNestedInput
+}
+
+export type CategoryUncheckedUpdateWithoutInstallmentPurchasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  budgets?: Prisma.BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+}
+
 export type CategoryCreateWithoutTransactionsInput = {
   id?: string
   name: string
@@ -538,6 +627,7 @@ export type CategoryCreateWithoutTransactionsInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutCategoriesInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUncheckedCreateWithoutTransactionsInput = {
@@ -549,6 +639,7 @@ export type CategoryUncheckedCreateWithoutTransactionsInput = {
   updatedAt?: Date | string
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryCreateOrConnectWithoutTransactionsInput = {
@@ -576,6 +667,7 @@ export type CategoryUpdateWithoutTransactionsInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutCategoriesNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateWithoutTransactionsInput = {
@@ -587,6 +679,7 @@ export type CategoryUncheckedUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryCreateWithoutBudgetsInput = {
@@ -598,6 +691,7 @@ export type CategoryCreateWithoutBudgetsInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutCategoriesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUncheckedCreateWithoutBudgetsInput = {
@@ -609,6 +703,7 @@ export type CategoryUncheckedCreateWithoutBudgetsInput = {
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutCategoryInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryCreateOrConnectWithoutBudgetsInput = {
@@ -636,6 +731,7 @@ export type CategoryUpdateWithoutBudgetsInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutCategoriesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateWithoutBudgetsInput = {
@@ -647,6 +743,7 @@ export type CategoryUncheckedUpdateWithoutBudgetsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryCreateWithoutRecurringTransactionsInput = {
@@ -658,6 +755,7 @@ export type CategoryCreateWithoutRecurringTransactionsInput = {
   workspace: Prisma.WorkspaceCreateNestedOneWithoutCategoriesInput
   transactions?: Prisma.FinancialTransactionCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryUncheckedCreateWithoutRecurringTransactionsInput = {
@@ -669,6 +767,7 @@ export type CategoryUncheckedCreateWithoutRecurringTransactionsInput = {
   updatedAt?: Date | string
   transactions?: Prisma.FinancialTransactionUncheckedCreateNestedManyWithoutCategoryInput
   budgets?: Prisma.BudgetUncheckedCreateNestedManyWithoutCategoryInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedCreateNestedManyWithoutCategoryInput
 }
 
 export type CategoryCreateOrConnectWithoutRecurringTransactionsInput = {
@@ -696,6 +795,7 @@ export type CategoryUpdateWithoutRecurringTransactionsInput = {
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutCategoriesNestedInput
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateWithoutRecurringTransactionsInput = {
@@ -707,6 +807,7 @@ export type CategoryUncheckedUpdateWithoutRecurringTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryCreateManyWorkspaceInput = {
@@ -726,6 +827,7 @@ export type CategoryUpdateWithoutWorkspaceInput = {
   transactions?: Prisma.FinancialTransactionUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateWithoutWorkspaceInput = {
@@ -737,6 +839,7 @@ export type CategoryUncheckedUpdateWithoutWorkspaceInput = {
   transactions?: Prisma.FinancialTransactionUncheckedUpdateManyWithoutCategoryNestedInput
   budgets?: Prisma.BudgetUncheckedUpdateManyWithoutCategoryNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutCategoryNestedInput
+  installmentPurchases?: Prisma.CreditCardInstallmentPurchaseUncheckedUpdateManyWithoutCategoryNestedInput
 }
 
 export type CategoryUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -756,12 +859,14 @@ export type CategoryCountOutputType = {
   transactions: number
   budgets: number
   recurringTransactions: number
+  installmentPurchases: number
 }
 
 export type CategoryCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | CategoryCountOutputTypeCountTransactionsArgs
   budgets?: boolean | CategoryCountOutputTypeCountBudgetsArgs
   recurringTransactions?: boolean | CategoryCountOutputTypeCountRecurringTransactionsArgs
+  installmentPurchases?: boolean | CategoryCountOutputTypeCountInstallmentPurchasesArgs
 }
 
 /**
@@ -795,6 +900,13 @@ export type CategoryCountOutputTypeCountRecurringTransactionsArgs<ExtArgs extend
   where?: Prisma.RecurringTransactionWhereInput
 }
 
+/**
+ * CategoryCountOutputType without action
+ */
+export type CategoryCountOutputTypeCountInstallmentPurchasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CreditCardInstallmentPurchaseWhereInput
+}
+
 
 export type CategorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -807,6 +919,7 @@ export type CategorySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   transactions?: boolean | Prisma.Category$transactionsArgs<ExtArgs>
   budgets?: boolean | Prisma.Category$budgetsArgs<ExtArgs>
   recurringTransactions?: boolean | Prisma.Category$recurringTransactionsArgs<ExtArgs>
+  installmentPurchases?: boolean | Prisma.Category$installmentPurchasesArgs<ExtArgs>
   _count?: boolean | Prisma.CategoryCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["category"]>
 
@@ -845,6 +958,7 @@ export type CategoryInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   transactions?: boolean | Prisma.Category$transactionsArgs<ExtArgs>
   budgets?: boolean | Prisma.Category$budgetsArgs<ExtArgs>
   recurringTransactions?: boolean | Prisma.Category$recurringTransactionsArgs<ExtArgs>
+  installmentPurchases?: boolean | Prisma.Category$installmentPurchasesArgs<ExtArgs>
   _count?: boolean | Prisma.CategoryCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CategoryIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -861,6 +975,7 @@ export type $CategoryPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     transactions: Prisma.$FinancialTransactionPayload<ExtArgs>[]
     budgets: Prisma.$BudgetPayload<ExtArgs>[]
     recurringTransactions: Prisma.$RecurringTransactionPayload<ExtArgs>[]
+    installmentPurchases: Prisma.$CreditCardInstallmentPurchasePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1267,6 +1382,7 @@ export interface Prisma__CategoryClient<T, Null = never, ExtArgs extends runtime
   transactions<T extends Prisma.Category$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Category$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FinancialTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   budgets<T extends Prisma.Category$budgetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Category$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recurringTransactions<T extends Prisma.Category$recurringTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Category$recurringTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecurringTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  installmentPurchases<T extends Prisma.Category$installmentPurchasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Category$installmentPurchasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CreditCardInstallmentPurchasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1772,6 +1888,30 @@ export type Category$recurringTransactionsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.RecurringTransactionScalarFieldEnum | Prisma.RecurringTransactionScalarFieldEnum[]
+}
+
+/**
+ * Category.installmentPurchases
+ */
+export type Category$installmentPurchasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CreditCardInstallmentPurchase
+   */
+  select?: Prisma.CreditCardInstallmentPurchaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CreditCardInstallmentPurchase
+   */
+  omit?: Prisma.CreditCardInstallmentPurchaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CreditCardInstallmentPurchaseInclude<ExtArgs> | null
+  where?: Prisma.CreditCardInstallmentPurchaseWhereInput
+  orderBy?: Prisma.CreditCardInstallmentPurchaseOrderByWithRelationInput | Prisma.CreditCardInstallmentPurchaseOrderByWithRelationInput[]
+  cursor?: Prisma.CreditCardInstallmentPurchaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CreditCardInstallmentPurchaseScalarFieldEnum | Prisma.CreditCardInstallmentPurchaseScalarFieldEnum[]
 }
 
 /**
