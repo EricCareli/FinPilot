@@ -5,22 +5,24 @@ import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 import { requireWorkspaceRoles } from '../middlewares/permission.middleware.js';
 
 import {
-  createRecurringTransaction,
-  listRecurringTransactions,
-  executeRecurringTransaction,
-  pauseRecurringTransaction,
-  resumeRecurringTransaction,
   cancelRecurringTransaction,
+  createRecurringTransaction,
+  executeRecurringTransaction,
+  listRecurringTransactions,
+  pauseRecurringTransaction,
+  processDueRecurringTransactions,
+  resumeRecurringTransaction,
 } from '../services/recurring-transaction.service.js';
 
 export async function recurringTransactionsRoutes(
   app: FastifyInstance,
 ): Promise<void> {
-  const financeRoles = requireWorkspaceRoles(
-    'OWNER',
-    'ADMIN',
-    'FINANCE',
-  );
+  const financeRoles =
+    requireWorkspaceRoles(
+      'OWNER',
+      'ADMIN',
+      'FINANCE',
+    );
 
   app.post(
     '/recurring-transactions',
@@ -44,7 +46,9 @@ export async function recurringTransactionsRoutes(
       } = request.body as {
         accountId?: string;
         categoryId?: string;
-        type?: 'INCOME' | 'EXPENSE';
+        type?:
+          | 'INCOME'
+          | 'EXPENSE';
         amount?: number;
         description?: string;
         frequency?:
@@ -96,7 +100,10 @@ export async function recurringTransactionsRoutes(
       const normalizedDescription =
         description.trim();
 
-      if (normalizedDescription.length < 2) {
+      if (
+        normalizedDescription.length <
+        2
+      ) {
         return reply.status(400).send({
           status: 'error',
           message:
@@ -112,17 +119,19 @@ export async function recurringTransactionsRoutes(
       ] as const;
 
       if (
-        !validFrequencies.includes(frequency)
+        !validFrequencies.includes(
+          frequency,
+        )
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid frequency',
+          message:
+            'Invalid frequency',
         });
       }
 
-      const parsedStartDate = new Date(
-        startDate,
-      );
+      const parsedStartDate =
+        new Date(startDate);
 
       if (
         Number.isNaN(
@@ -131,14 +140,18 @@ export async function recurringTransactionsRoutes(
       ) {
         return reply.status(400).send({
           status: 'error',
-          message: 'Invalid start date',
+          message:
+            'Invalid start date',
         });
       }
 
-      let parsedEndDate: Date | undefined;
+      let parsedEndDate:
+        | Date
+        | undefined;
 
       if (endDate) {
-        parsedEndDate = new Date(endDate);
+        parsedEndDate =
+          new Date(endDate);
 
         if (
           Number.isNaN(
@@ -147,66 +160,39 @@ export async function recurringTransactionsRoutes(
         ) {
           return reply.status(400).send({
             status: 'error',
-            message: 'Invalid end date',
+            message:
+              'Invalid end date',
           });
         }
       }
 
-      try {
-        const recurringTransaction =
-          await createRecurringTransaction({
-            workspaceId: request.workspace.id,
-            accountId,
-            ...(categoryId
-              ? { categoryId }
-              : {}),
-            type,
-            amount,
-            description:
-              normalizedDescription,
-            frequency,
-            startDate:
-              parsedStartDate,
-            ...(parsedEndDate
-              ? {
-                  endDate: parsedEndDate,
-                }
-              : {}),
-          });
-
-        return reply.status(201).send({
-          status: 'success',
-          recurringTransaction,
+      const recurringTransaction =
+        await createRecurringTransaction({
+          workspaceId:
+            request.workspace.id,
+          accountId,
+          ...(categoryId
+            ? { categoryId }
+            : {}),
+          type,
+          amount,
+          description:
+            normalizedDescription,
+          frequency,
+          startDate:
+            parsedStartDate,
+          ...(parsedEndDate
+            ? {
+                endDate:
+                  parsedEndDate,
+              }
+            : {}),
         });
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          throw error;
-        }
 
-        switch (error.message) {
-          case 'Account not found':
-          case 'Category not found':
-            return reply.status(404).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          case 'Recurring transaction type must be INCOME or EXPENSE':
-          case 'Recurring transaction amount must be greater than zero':
-          case 'Description is required':
-          case 'Invalid start date':
-          case 'Invalid end date':
-          case 'End date must be greater than or equal to start date':
-          case 'Category type must match recurring transaction type':
-            return reply.status(400).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          default:
-            throw error;
-        }
-      }
+      return reply.status(201).send({
+        status: 'success',
+        recurringTransaction,
+      });
     },
   );
 
@@ -231,6 +217,36 @@ export async function recurringTransactionsRoutes(
     },
   );
 
+  /*
+   * Executes every occurrence currently due
+   * for this workspace.
+   *
+   * This endpoint also gives us an easy way
+   * to test the automatic processor before
+   * connecting it to the server scheduler.
+   */
+  app.post(
+    '/recurring-transactions/process-due',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        financeRoles,
+      ],
+    },
+    async (request, reply) => {
+      const result =
+        await processDueRecurringTransactions(
+          request.workspace.id,
+        );
+
+      return reply.status(200).send({
+        status: 'success',
+        result,
+      });
+    },
+  );
+
   app.post(
     '/recurring-transactions/:id/execute',
     {
@@ -241,9 +257,10 @@ export async function recurringTransactionsRoutes(
       ],
     },
     async (request, reply) => {
-      const { id } = request.params as {
-        id?: string;
-      };
+      const { id } =
+        request.params as {
+          id?: string;
+        };
 
       if (!id) {
         return reply.status(400).send({
@@ -253,41 +270,16 @@ export async function recurringTransactionsRoutes(
         });
       }
 
-      try {
-        const result =
-          await executeRecurringTransaction(
-            request.workspace.id,
-            id,
-          );
+      const result =
+        await executeRecurringTransaction(
+          request.workspace.id,
+          id,
+        );
 
-        return reply.status(201).send({
-          status: 'success',
-          result,
-        });
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          throw error;
-        }
-
-        switch (error.message) {
-          case 'Recurring transaction not found':
-          case 'Account not found':
-            return reply.status(404).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          case 'Recurring transaction is not active':
-          case 'Recurring transaction is not due yet':
-            return reply.status(400).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          default:
-            throw error;
-        }
-      }
+      return reply.status(201).send({
+        status: 'success',
+        result,
+      });
     },
   );
 
@@ -301,9 +293,10 @@ export async function recurringTransactionsRoutes(
       ],
     },
     async (request, reply) => {
-      const { id } = request.params as {
-        id?: string;
-      };
+      const { id } =
+        request.params as {
+          id?: string;
+        };
 
       if (!id) {
         return reply.status(400).send({
@@ -313,40 +306,16 @@ export async function recurringTransactionsRoutes(
         });
       }
 
-      try {
-        const recurringTransaction =
-          await pauseRecurringTransaction(
-            request.workspace.id,
-            id,
-          );
+      const recurringTransaction =
+        await pauseRecurringTransaction(
+          request.workspace.id,
+          id,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          recurringTransaction,
-        });
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          throw error;
-        }
-
-        switch (error.message) {
-          case 'Recurring transaction not found':
-            return reply.status(404).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          case 'Cancelled recurring transaction cannot be paused':
-          case 'Recurring transaction is already paused':
-            return reply.status(400).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          default:
-            throw error;
-        }
-      }
+      return reply.status(200).send({
+        status: 'success',
+        recurringTransaction,
+      });
     },
   );
 
@@ -360,9 +329,10 @@ export async function recurringTransactionsRoutes(
       ],
     },
     async (request, reply) => {
-      const { id } = request.params as {
-        id?: string;
-      };
+      const { id } =
+        request.params as {
+          id?: string;
+        };
 
       if (!id) {
         return reply.status(400).send({
@@ -372,40 +342,16 @@ export async function recurringTransactionsRoutes(
         });
       }
 
-      try {
-        const recurringTransaction =
-          await resumeRecurringTransaction(
-            request.workspace.id,
-            id,
-          );
+      const recurringTransaction =
+        await resumeRecurringTransaction(
+          request.workspace.id,
+          id,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          recurringTransaction,
-        });
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          throw error;
-        }
-
-        switch (error.message) {
-          case 'Recurring transaction not found':
-            return reply.status(404).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          case 'Cancelled recurring transaction cannot be resumed':
-          case 'Recurring transaction is already active':
-            return reply.status(400).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          default:
-            throw error;
-        }
-      }
+      return reply.status(200).send({
+        status: 'success',
+        recurringTransaction,
+      });
     },
   );
 
@@ -419,9 +365,10 @@ export async function recurringTransactionsRoutes(
       ],
     },
     async (request, reply) => {
-      const { id } = request.params as {
-        id?: string;
-      };
+      const { id } =
+        request.params as {
+          id?: string;
+        };
 
       if (!id) {
         return reply.status(400).send({
@@ -431,39 +378,16 @@ export async function recurringTransactionsRoutes(
         });
       }
 
-      try {
-        const recurringTransaction =
-          await cancelRecurringTransaction(
-            request.workspace.id,
-            id,
-          );
+      const recurringTransaction =
+        await cancelRecurringTransaction(
+          request.workspace.id,
+          id,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          recurringTransaction,
-        });
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          throw error;
-        }
-
-        switch (error.message) {
-          case 'Recurring transaction not found':
-            return reply.status(404).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          case 'Recurring transaction is already cancelled':
-            return reply.status(400).send({
-              status: 'error',
-              message: error.message,
-            });
-
-          default:
-            throw error;
-        }
-      }
+      return reply.status(200).send({
+        status: 'success',
+        recurringTransaction,
+      });
     },
   );
 }
