@@ -18,8 +18,7 @@ export async function getDashboard(
 
   if (
     hasMonth &&
-    (!Number.isInteger(period.month) ||
-      period.month! < 1 ||
+    (period.month! < 1 ||
       period.month! > 12)
   ) {
     throw new Error(
@@ -204,39 +203,51 @@ export async function getDashboard(
       }
     >();
 
-  for (const transaction of financialTransactions) {
+  for (
+    const transaction of
+      financialTransactions
+  ) {
     let transactionAmount =
       new Prisma.Decimal(0);
 
-    for (const entry of transaction.entries) {
+    for (
+      const entry of
+        transaction.entries
+    ) {
       transactionAmount =
         transactionAmount.plus(
           entry.amount,
         );
     }
 
-    if (transaction.type === 'INCOME') {
+    if (
+      transaction.type === 'INCOME'
+    ) {
       totalIncome =
         totalIncome.plus(
           transactionAmount,
         );
     }
 
-    if (transaction.type === 'EXPENSE') {
+    if (
+      transaction.type === 'EXPENSE'
+    ) {
       totalExpense =
         totalExpense.plus(
           transactionAmount,
         );
 
       const categoryId =
-        transaction.category?.id ?? null;
+        transaction.category?.id ??
+        null;
 
       const categoryName =
         transaction.category?.name ??
         'Sem categoria';
 
       const mapKey =
-        categoryId ?? 'uncategorized';
+        categoryId ??
+        'uncategorized';
 
       const existing =
         expenseByCategoryMap.get(
@@ -254,7 +265,8 @@ export async function getDashboard(
           {
             categoryId,
             categoryName,
-            amount: transactionAmount,
+            amount:
+              transactionAmount,
           },
         );
       }
@@ -283,21 +295,50 @@ export async function getDashboard(
             category.categoryId,
           categoryName:
             category.categoryName,
-          amount: category.amount,
+          amount:
+            category.amount,
           percentage,
         };
       });
 
   /*
    * EVOLUÇÃO DOS ÚLTIMOS 6 MESES
+   *
+   * Quando mês/ano forem informados,
+   * o mês selecionado é a referência.
+   *
+   * Sem filtro de período, usamos
+   * o mês atual do servidor.
    */
-  const currentDate = new Date();
+  const currentDate =
+    new Date();
+
+  const monthlyReferenceDate =
+    periodStart ??
+    new Date(
+      Date.UTC(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        1,
+      ),
+    );
 
   const monthlyStart =
     new Date(
       Date.UTC(
-        currentDate.getUTCFullYear(),
-        currentDate.getUTCMonth() - 5,
+        monthlyReferenceDate.getUTCFullYear(),
+        monthlyReferenceDate.getUTCMonth() -
+          5,
+        1,
+      ),
+    );
+
+  const monthlyEnd =
+    new Date(
+      Date.UTC(
+        monthlyReferenceDate.getUTCFullYear(),
+        monthlyReferenceDate.getUTCMonth() +
+          1,
         1,
       ),
     );
@@ -313,6 +354,7 @@ export async function getDashboard(
           },
           transactionDate: {
             gte: monthlyStart,
+            lt: monthlyEnd,
           },
         },
         select: {
@@ -349,8 +391,8 @@ export async function getDashboard(
     const date =
       new Date(
         Date.UTC(
-          currentDate.getUTCFullYear(),
-          currentDate.getUTCMonth() -
+          monthlyReferenceDate.getUTCFullYear(),
+          monthlyReferenceDate.getUTCMonth() -
             index,
           1,
         ),
@@ -438,13 +480,20 @@ export async function getDashboard(
           return a.year - b.year;
         }
 
-        return a.month - b.month;
+        return (
+          a.month -
+          b.month
+        );
       })
       .map((month) => ({
-        month: month.month,
-        year: month.year,
-        income: month.income,
-        expense: month.expense,
+        month:
+          month.month,
+        year:
+          month.year,
+        income:
+          month.income,
+        expense:
+          month.expense,
         netResult:
           month.income.minus(
             month.expense,
@@ -526,8 +575,10 @@ export async function getDashboard(
               ],
             },
             transactionDate: {
-              gte: previousMonthDate,
-              lt: previousMonthEnd,
+              gte:
+                previousMonthDate,
+              lt:
+                previousMonthEnd,
             },
           },
           select: {
@@ -559,7 +610,9 @@ export async function getDashboard(
           transaction.entries
       ) {
         amount =
-          amount.plus(entry.amount);
+          amount.plus(
+            entry.amount,
+          );
       }
 
       if (
@@ -595,8 +648,10 @@ export async function getDashboard(
       year:
         previousMonthDate
           .getUTCFullYear(),
-      income: previousIncome,
-      expense: previousExpense,
+      income:
+        previousIncome,
+      expense:
+        previousExpense,
       netResult:
         previousNetResult,
     };
@@ -663,8 +718,10 @@ export async function getDashboard(
       await prisma.budget.findMany({
         where: {
           workspaceId,
-          month: period.month!,
-          year: period.year!,
+          month:
+            period.month!,
+          year:
+            period.year!,
         },
         select: {
           id: true,
@@ -701,11 +758,14 @@ export async function getDashboard(
                 status: 'POSTED',
                 type: 'EXPENSE',
                 categoryId: {
-                  in: budgetCategoryIds,
+                  in:
+                    budgetCategoryIds,
                 },
                 transactionDate: {
-                  gte: periodStart,
-                  lt: periodEnd,
+                  gte:
+                    periodStart,
+                  lt:
+                    periodEnd,
                 },
               },
               select: {
@@ -731,7 +791,9 @@ export async function getDashboard(
       const transaction of
         budgetTransactions
     ) {
-      if (!transaction.categoryId) {
+      if (
+        !transaction.categoryId
+      ) {
         continue;
       }
 
@@ -742,7 +804,10 @@ export async function getDashboard(
         const entry of
           transaction.entries
       ) {
-        if (entry.type === 'DEBIT') {
+        if (
+          entry.type ===
+          'DEBIT'
+        ) {
           transactionAmount =
             transactionAmount.plus(
               entry.amount,
@@ -797,26 +862,33 @@ export async function getDashboard(
               100,
             )
           ) {
-            status = 'EXCEEDED';
+            status =
+              'EXCEEDED';
           } else if (
             percentageUsed.greaterThanOrEqualTo(
               80,
             )
           ) {
-            status = 'WARNING';
+            status =
+              'WARNING';
           } else {
-            status = 'ON_TRACK';
+            status =
+              'ON_TRACK';
           }
 
           return {
-            id: budget.id,
+            id:
+              budget.id,
             categoryId:
               budget.categoryId,
             categoryName:
               budget.category.name,
-            month: budget.month,
-            year: budget.year,
-            budget: budget.amount,
+            month:
+              budget.month,
+            year:
+              budget.year,
+            budget:
+              budget.amount,
             spent,
             remaining,
             percentageUsed,
@@ -829,69 +901,15 @@ export async function getDashboard(
   /*
    * CARTÕES DE CRÉDITO
    *
-   * O limite utilizado vem das faturas
-   * OPEN, CLOSED e OVERDUE.
+   * O limite utilizado é calculado
+   * diretamente pelo ledger:
    *
-   * PAID não consome mais limite.
+   * DEBIT aumenta o limite utilizado.
+   * CREDIT reduz o limite utilizado.
+   *
+   * Dessa forma, compras antigas sem
+   * invoiceId também são consideradas.
    */
-  const creditCardIds =
-    accounts
-      .filter(
-        (account) =>
-          account.type ===
-            'CREDIT_CARD' &&
-          account.creditCard !== null,
-      )
-      .map(
-        (account) =>
-          account.creditCard!.id,
-      );
-
-  const openInvoices =
-    creditCardIds.length > 0
-      ? await prisma.creditCardInvoice.findMany(
-          {
-            where: {
-              creditCardId: {
-                in: creditCardIds,
-              },
-              status: {
-                in: [
-                  'OPEN',
-                  'CLOSED',
-                  'OVERDUE',
-                ],
-              },
-            },
-            select: {
-              creditCardId: true,
-              totalAmount: true,
-            },
-          },
-        )
-      : [];
-
-  const usedLimitByCard =
-    new Map<
-      string,
-      Prisma.Decimal
-    >();
-
-  for (const invoice of openInvoices) {
-    const current =
-      usedLimitByCard.get(
-        invoice.creditCardId,
-      ) ??
-      new Prisma.Decimal(0);
-
-    usedLimitByCard.set(
-      invoice.creditCardId,
-      current.plus(
-        invoice.totalAmount,
-      ),
-    );
-  }
-
   let totalCreditLimit =
     new Prisma.Decimal(0);
 
@@ -907,27 +925,59 @@ export async function getDashboard(
         (account) =>
           account.type ===
             'CREDIT_CARD' &&
-          account.creditCard !== null,
+          account.creditCard !==
+            null,
       )
       .map((account) => {
         const creditCard =
           account.creditCard!;
+
+        let usedLimit =
+          new Prisma.Decimal(0);
+
+        for (
+          const entry of
+            account.entries
+        ) {
+          if (
+            entry.type ===
+            'DEBIT'
+          ) {
+            usedLimit =
+              usedLimit.plus(
+                entry.amount,
+              );
+          } else {
+            usedLimit =
+              usedLimit.minus(
+                entry.amount,
+              );
+          }
+        }
+
+        if (
+          usedLimit.isNegative()
+        ) {
+          usedLimit =
+            new Prisma.Decimal(0);
+        }
 
         const creditLimit =
           new Prisma.Decimal(
             creditCard.creditLimit,
           );
 
-        const usedLimit =
-          usedLimitByCard.get(
-            creditCard.id,
-          ) ??
-          new Prisma.Decimal(0);
-
-        const availableLimit =
+        let availableLimit =
           creditLimit.minus(
             usedLimit,
           );
+
+        if (
+          availableLimit.isNegative()
+        ) {
+          availableLimit =
+            new Prisma.Decimal(0);
+        }
 
         totalCreditLimit =
           totalCreditLimit.plus(
@@ -945,10 +995,12 @@ export async function getDashboard(
           );
 
         return {
-          id: creditCard.id,
+          id:
+            creditCard.id,
           accountId:
             account.id,
-          name: account.name,
+          name:
+            account.name,
           currency:
             account.currency,
           creditLimit,
@@ -1005,7 +1057,8 @@ export async function getDashboard(
           },
         },
         orderBy: {
-          transactionDate: 'desc',
+          transactionDate:
+            'desc',
         },
         take: 10,
       },
@@ -1015,8 +1068,10 @@ export async function getDashboard(
     period:
       hasMonth && hasYear
         ? {
-            month: period.month,
-            year: period.year,
+            month:
+              period.month,
+            year:
+              period.year,
           }
         : null,
 
@@ -1040,7 +1095,8 @@ export async function getDashboard(
     accountCount:
       accounts.length,
 
-    accounts: accountBalances,
+    accounts:
+      accountBalances,
 
     creditCards: {
       count:
@@ -1048,7 +1104,8 @@ export async function getDashboard(
       totalCreditLimit,
       totalCreditUsed,
       totalCreditAvailable,
-      cards: creditCards,
+      cards:
+        creditCards,
     },
 
     recentTransactions,
