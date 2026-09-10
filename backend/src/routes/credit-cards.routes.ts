@@ -34,6 +34,7 @@ import {
   createCreditCardInstallmentPurchase,
   getCreditCardInstallmentPurchase,
   listCreditCardInstallmentPurchases,
+  updateCreditCardInstallmentPurchase,
   voidCreditCardInstallmentPurchase,
 } from '../services/credit-card-installment.service.js';
 
@@ -153,9 +154,6 @@ export async function creditCardsRoutes(
     },
   );
 
-  /*
-   * COMPRA À VISTA
-   */
   app.post(
     '/credit-cards/:accountId/purchases',
     {
@@ -235,9 +233,6 @@ export async function creditCardsRoutes(
     },
   );
 
-  /*
-   * COMPRA PARCELADA
-   */
   app.post(
     '/credit-cards/:accountId/installment-purchases',
     {
@@ -376,6 +371,110 @@ export async function creditCardsRoutes(
     },
   );
 
+  app.patch(
+    '/credit-cards/installment-purchases/:purchaseId',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        financeRoles,
+      ],
+    },
+    async (request, reply) => {
+      const { purchaseId } =
+        request.params as {
+          purchaseId: string;
+        };
+
+      const {
+        categoryId,
+        totalAmount,
+        description,
+        installmentCount,
+        purchaseDate,
+      } = request.body as {
+        categoryId?:
+          | string
+          | null;
+        totalAmount?: number;
+        description?: string;
+        installmentCount?: number;
+        purchaseDate?: string;
+      };
+
+      let parsedPurchaseDate:
+        | Date
+        | undefined;
+
+      if (
+        purchaseDate !== undefined
+      ) {
+        parsedPurchaseDate =
+          new Date(
+            purchaseDate,
+          );
+
+        if (
+          Number.isNaN(
+            parsedPurchaseDate.getTime(),
+          )
+        ) {
+          return reply
+            .status(400)
+            .send({
+              status: 'error',
+              message:
+                'Invalid purchase date',
+            });
+        }
+      }
+
+      const installmentPurchase =
+        await updateCreditCardInstallmentPurchase({
+          workspaceId:
+            request.workspace.id,
+          installmentPurchaseId:
+            purchaseId,
+          ...(categoryId !==
+          undefined
+            ? {
+                categoryId,
+              }
+            : {}),
+          ...(totalAmount !==
+          undefined
+            ? {
+                totalAmount,
+              }
+            : {}),
+          ...(description !==
+          undefined
+            ? {
+                description,
+              }
+            : {}),
+          ...(installmentCount !==
+          undefined
+            ? {
+                installmentCount,
+              }
+            : {}),
+          ...(parsedPurchaseDate !==
+          undefined
+            ? {
+                purchaseDate:
+                  parsedPurchaseDate,
+              }
+            : {}),
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        installmentPurchase,
+      });
+    },
+  );
+
   app.post(
     '/credit-cards/installment-purchases/:purchaseId/void',
     {
@@ -406,12 +505,6 @@ export async function creditCardsRoutes(
     },
   );
 
-  /*
-   * EDIÇÃO DE COMPRA À VISTA
-   *
-   * Uma parcela individual não pode usar
-   * este endpoint.
-   */
   app.patch(
     '/credit-cards/purchases/:transactionId',
     {
@@ -545,9 +638,6 @@ export async function creditCardsRoutes(
     },
   );
 
-  /*
-   * FATURAS
-   */
   app.post(
     '/credit-cards/:accountId/invoices',
     {
