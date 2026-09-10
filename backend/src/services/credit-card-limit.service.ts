@@ -1,6 +1,7 @@
 import { Prisma } from '../generated/prisma/client.js';
 
 import { prisma } from '../lib/prisma.js';
+import { AppError } from '../errors/app-error.js';
 
 export async function getCreditCardLimit(
   workspaceId: string,
@@ -19,74 +20,47 @@ export async function getCreditCardLimit(
     });
 
   if (!creditCard) {
-    throw new Error(
+    throw new AppError(
       'Credit card not found',
+      404,
     );
   }
 
-  const transactions =
-    await prisma.financialTransaction.findMany({
+  const entries =
+    await prisma.ledgerEntry.findMany({
       where: {
-        workspaceId,
-        type: 'EXPENSE',
-        status: 'POSTED',
-        entries: {
-          some: {
-            accountId,
-            type: 'DEBIT',
-          },
+        accountId,
+        transaction: {
+          workspaceId,
+          status: 'POSTED',
         },
       },
-      include: {
-        entries: {
-          where: {
-            accountId,
-            type: 'DEBIT',
-          },
-          select: {
-            amount: true,
-          },
-        },
+      select: {
+        type: true,
+        amount: true,
       },
     });
 
   let usedLimit =
     new Prisma.Decimal(0);
 
-  for (const transaction of transactions) {
-    for (const entry of transaction.entries) {
-      usedLimit = usedLimit.plus(
-        entry.amount,
-      );
+  for (const entry of entries) {
+    if (entry.type === 'DEBIT') {
+      usedLimit =
+        usedLimit.plus(
+          entry.amount,
+        );
+    } else {
+      usedLimit =
+        usedLimit.minus(
+          entry.amount,
+        );
     }
   }
 
-  const paidInvoices =
-    await prisma.creditCardInvoice.findMany({
-      where: {
-        creditCardId: creditCard.id,
-        status: 'PAID',
-      },
-      select: {
-        totalAmount: true,
-      },
-    });
-
-  let paidAmount =
-    new Prisma.Decimal(0);
-
-  for (const invoice of paidInvoices) {
-    paidAmount = paidAmount.plus(
-      invoice.totalAmount,
-    );
-  }
-
-  usedLimit = usedLimit.minus(
-    paidAmount,
-  );
-
   if (usedLimit.isNegative()) {
-    usedLimit = new Prisma.Decimal(0);
+    usedLimit =
+      new Prisma.Decimal(0);
   }
 
   const creditLimit =
@@ -94,8 +68,15 @@ export async function getCreditCardLimit(
       creditCard.creditLimit,
     );
 
-  const availableLimit =
-    creditLimit.minus(usedLimit);
+  let availableLimit =
+    creditLimit.minus(
+      usedLimit,
+    );
+
+  if (availableLimit.isNegative()) {
+    availableLimit =
+      new Prisma.Decimal(0);
+  }
 
   return {
     accountId,

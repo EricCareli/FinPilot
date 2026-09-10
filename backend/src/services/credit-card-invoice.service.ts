@@ -1,5 +1,7 @@
 import { Prisma } from '../generated/prisma/client.js';
+
 import { prisma } from '../lib/prisma.js';
+import { AppError } from '../errors/app-error.js';
 
 export interface CreateInvoiceInput {
   workspaceId: string;
@@ -24,11 +26,18 @@ function createSafeDate(
 ): Date {
   const safeDay = Math.min(
     day,
-    getLastDayOfMonth(year, month),
+    getLastDayOfMonth(
+      year,
+      month,
+    ),
   );
 
   return new Date(
-    Date.UTC(year, month - 1, safeDay),
+    Date.UTC(
+      year,
+      month - 1,
+      safeDay,
+    ),
   );
 }
 
@@ -38,37 +47,44 @@ function getInvoiceDates(
   month: number,
   year: number,
 ) {
-  const closingDate = createSafeDate(
-    year,
-    month,
-    closingDay,
-  );
+  const closingDate =
+    createSafeDate(
+      year,
+      month,
+      closingDay,
+    );
 
-  let previousMonth = month - 1;
-  let previousYear = year;
+  let previousMonth =
+    month - 1;
+
+  let previousYear =
+    year;
 
   if (previousMonth < 1) {
     previousMonth = 12;
     previousYear -= 1;
   }
 
-  const periodStart = new Date(
-    Date.UTC(
+  const previousClosingDate =
+    createSafeDate(
       previousYear,
-      previousMonth - 1,
-      Math.min(
-        closingDay + 1,
-        getLastDayOfMonth(
-          previousYear,
-          previousMonth,
-        ),
-      ),
-    ),
+      previousMonth,
+      closingDay,
+    );
+
+  const periodStart =
+    new Date(
+      previousClosingDate.getTime(),
+    );
+
+  periodStart.setUTCDate(
+    periodStart.getUTCDate() + 1,
   );
 
-  const periodEnd = new Date(
-    closingDate.getTime(),
-  );
+  const periodEnd =
+    new Date(
+      closingDate.getTime(),
+    );
 
   periodEnd.setUTCDate(
     periodEnd.getUTCDate() + 1,
@@ -86,11 +102,12 @@ function getInvoiceDates(
     }
   }
 
-  const dueDate = createSafeDate(
-    dueYear,
-    dueMonth,
-    dueDay,
-  );
+  const dueDate =
+    createSafeDate(
+      dueYear,
+      dueMonth,
+      dueDay,
+    );
 
   return {
     closingDate,
@@ -103,145 +120,228 @@ function getInvoiceDates(
 export async function createInvoice(
   input: CreateInvoiceInput,
 ) {
-  return prisma.$transaction(async (tx) => {
-    const creditCard =
-      await tx.creditCard.findFirst({
-        where: {
-          accountId: input.accountId,
-          account: {
-            workspaceId: input.workspaceId,
-            status: 'ACTIVE',
-            type: 'CREDIT_CARD',
-          },
-        },
-      });
-
-    if (!creditCard) {
-      throw new Error(
-        'Credit card not found',
-      );
-    }
-
-    if (
-      !Number.isInteger(input.month) ||
-      input.month < 1 ||
-      input.month > 12
-    ) {
-      throw new Error('Invalid month');
-    }
-
-    if (
-      !Number.isInteger(input.year) ||
-      input.year < 2000
-    ) {
-      throw new Error('Invalid year');
-    }
-
-    const existingInvoice =
-      await tx.creditCardInvoice.findUnique({
-        where: {
-          creditCardId_referenceMonth_referenceYear:
-            {
-              creditCardId: creditCard.id,
-              referenceMonth: input.month,
-              referenceYear: input.year,
-            },
-        },
-      });
-
-    if (existingInvoice) {
-      throw new Error(
-        'Invoice already exists',
-      );
-    }
-
-    const {
-      closingDate,
-      dueDate,
-      periodStart,
-      periodEnd,
-    } = getInvoiceDates(
-      creditCard.closingDay,
-      creditCard.dueDay,
-      input.month,
-      input.year,
-    );
-
-    const transactions =
-      await tx.financialTransaction.findMany({
-        where: {
-          workspaceId: input.workspaceId,
-          type: 'EXPENSE',
-          status: 'POSTED',
-          transactionDate: {
-            gte: periodStart,
-            lt: periodEnd,
-          },
-          entries: {
-            some: {
-              accountId: input.accountId,
-              type: 'DEBIT',
+  return prisma.$transaction(
+    async (tx) => {
+      const creditCard =
+        await tx.creditCard.findFirst({
+          where: {
+            accountId:
+              input.accountId,
+            account: {
+              workspaceId:
+                input.workspaceId,
+              status: 'ACTIVE',
+              type: 'CREDIT_CARD',
             },
           },
-        },
-        include: {
-          entries: {
-            where: {
-              accountId: input.accountId,
-              type: 'DEBIT',
-            },
-            select: {
-              amount: true,
-            },
-          },
-        },
-      });
+        });
 
-    let totalAmount =
-      new Prisma.Decimal(0);
-
-    for (const transaction of transactions) {
-      for (const entry of transaction.entries) {
-        totalAmount = totalAmount.plus(
-          entry.amount,
+      if (!creditCard) {
+        throw new AppError(
+          'Credit card not found',
+          404,
         );
       }
-    }
 
-    return tx.creditCardInvoice.create({
-      data: {
-        creditCardId: creditCard.id,
-        referenceMonth: input.month,
-        referenceYear: input.year,
+      if (
+        !Number.isInteger(
+          input.month,
+        ) ||
+        input.month < 1 ||
+        input.month > 12
+      ) {
+        throw new AppError(
+          'Invalid month',
+          400,
+        );
+      }
+
+      if (
+        !Number.isInteger(
+          input.year,
+        ) ||
+        input.year < 2000
+      ) {
+        throw new AppError(
+          'Invalid year',
+          400,
+        );
+      }
+
+      const existingInvoice =
+        await tx.creditCardInvoice.findUnique({
+          where: {
+            creditCardId_referenceMonth_referenceYear:
+              {
+                creditCardId:
+                  creditCard.id,
+                referenceMonth:
+                  input.month,
+                referenceYear:
+                  input.year,
+              },
+          },
+        });
+
+      if (existingInvoice) {
+        throw new AppError(
+          'Invoice already exists',
+          409,
+        );
+      }
+
+      const {
         closingDate,
         dueDate,
-        totalAmount,
-        status: 'OPEN',
-      },
-    });
-  });
+        periodStart,
+        periodEnd,
+      } = getInvoiceDates(
+        creditCard.closingDay,
+        creditCard.dueDay,
+        input.month,
+        input.year,
+      );
+
+      const transactions =
+        await tx.financialTransaction.findMany({
+          where: {
+            workspaceId:
+              input.workspaceId,
+            invoiceId: null,
+            type: 'EXPENSE',
+            status: 'POSTED',
+            transactionDate: {
+              gte:
+                periodStart,
+              lt:
+                periodEnd,
+            },
+            entries: {
+              some: {
+                accountId:
+                  input.accountId,
+                type: 'DEBIT',
+              },
+            },
+          },
+          include: {
+            entries: {
+              where: {
+                accountId:
+                  input.accountId,
+                type: 'DEBIT',
+              },
+              select: {
+                amount: true,
+              },
+            },
+          },
+        });
+
+      let totalAmount =
+        new Prisma.Decimal(0);
+
+      for (
+        const transaction
+        of transactions
+      ) {
+        for (
+          const entry
+          of transaction.entries
+        ) {
+          totalAmount =
+            totalAmount.plus(
+              entry.amount,
+            );
+        }
+      }
+
+      const invoice =
+        await tx.creditCardInvoice.create({
+          data: {
+            creditCardId:
+              creditCard.id,
+            referenceMonth:
+              input.month,
+            referenceYear:
+              input.year,
+            closingDate,
+            dueDate,
+            totalAmount,
+            status: 'OPEN',
+          },
+        });
+
+      const transactionIds =
+        transactions.map(
+          (transaction) =>
+            transaction.id,
+        );
+
+      if (
+        transactionIds.length > 0
+      ) {
+        await tx.financialTransaction.updateMany({
+          where: {
+            id: {
+              in:
+                transactionIds,
+            },
+            workspaceId:
+              input.workspaceId,
+            invoiceId: null,
+          },
+          data: {
+            invoiceId:
+              invoice.id,
+          },
+        });
+      }
+
+      return invoice;
+    },
+  );
 }
 
 export async function listInvoices(
   workspaceId: string,
   accountId: string,
 ) {
-  return prisma.creditCardInvoice.findMany({
-    where: {
-      creditCard: {
+  const creditCard =
+    await prisma.creditCard.findFirst({
+      where: {
         accountId,
         account: {
           workspaceId,
           status: 'ACTIVE',
+          type: 'CREDIT_CARD',
         },
       },
+      select: {
+        id: true,
+      },
+    });
+
+  if (!creditCard) {
+    throw new AppError(
+      'Credit card not found',
+      404,
+    );
+  }
+
+  return prisma.creditCardInvoice.findMany({
+    where: {
+      creditCardId:
+        creditCard.id,
     },
     orderBy: [
       {
-        referenceYear: 'desc',
+        referenceYear:
+          'desc',
       },
       {
-        referenceMonth: 'desc',
+        referenceMonth:
+          'desc',
       },
     ],
   });
