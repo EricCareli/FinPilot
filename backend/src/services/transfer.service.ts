@@ -36,6 +36,7 @@ export async function createTransfer(
   }
 
   if (
+    !(input.transactionDate instanceof Date) ||
     Number.isNaN(input.transactionDate.getTime())
   ) {
     throw new Error('Invalid transaction date');
@@ -71,6 +72,15 @@ export async function createTransfer(
     }
 
     if (
+      sourceAccount.type === 'CREDIT_CARD' ||
+      destinationAccount.type === 'CREDIT_CARD'
+    ) {
+      throw new Error(
+        'Credit card accounts cannot be used in transfers',
+      );
+    }
+
+    if (
       sourceAccount.currency !==
       destinationAccount.currency
     ) {
@@ -98,15 +108,13 @@ export async function createTransfer(
         },
       });
 
-    let sourceBalance = new Prisma.Decimal(
-      sourceAccount.initialBalance,
-    );
+    let sourceBalance = new Prisma.Decimal(0);
 
     for (const entry of entries) {
       if (entry.type === 'CREDIT') {
         sourceBalance =
           sourceBalance.plus(entry.amount);
-      } else {
+      } else if (entry.type === 'DEBIT') {
         sourceBalance =
           sourceBalance.minus(entry.amount);
       }

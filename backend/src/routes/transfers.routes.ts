@@ -110,6 +110,7 @@ export async function transfersRoutes(
           case 'Description is required':
           case 'Invalid transaction date':
           case 'Source and destination accounts must use the same currency':
+          case 'Credit card accounts cannot be used in transfers':
           case 'Insufficient funds':
             return reply.status(400).send({
               status: 'error',
