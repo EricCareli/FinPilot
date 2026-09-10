@@ -1,11 +1,15 @@
 import type { FastifyInstance } from 'fastify';
+
 import { authenticate } from '../middlewares/auth.middleware.js';
 import { workspaceMiddleware } from '../middlewares/workspace.middleware.js';
 import { requireWorkspaceRoles } from '../middlewares/permission.middleware.js';
+
 import {
   createGoal,
-  listGoals,
+  deleteGoal,
   getGoalProgress,
+  listGoals,
+  updateGoal,
   updateGoalAmount,
 } from '../services/goal.service.js';
 
@@ -47,6 +51,32 @@ export async function goalsRoutes(
         });
       }
 
+      const normalizedName =
+        name.trim();
+
+      if (
+        normalizedName.length < 2
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Goal name must contain at least 2 characters',
+        });
+      }
+
+      if (
+        !Number.isFinite(
+          targetAmount,
+        ) ||
+        targetAmount <= 0
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Target amount must be greater than zero',
+        });
+      }
+
       let parsedDeadline:
         | Date
         | undefined;
@@ -62,18 +92,19 @@ export async function goalsRoutes(
         ) {
           return reply.status(400).send({
             status: 'error',
-            message: 'Invalid deadline',
+            message:
+              'Invalid deadline',
           });
         }
       }
 
-      try {
-        const goal = await createGoal({
+      const goal =
+        await createGoal({
           workspaceId:
             request.workspace.id,
-          name,
+          name: normalizedName,
           targetAmount,
-          ...(parsedDeadline
+          ...(parsedDeadline !== undefined
             ? {
                 deadline:
                   parsedDeadline,
@@ -81,30 +112,10 @@ export async function goalsRoutes(
             : {}),
         });
 
-        return reply.status(201).send({
-          status: 'success',
-          goal,
-        });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (
-            error.message ===
-              'Goal name must contain at least 2 characters' ||
-            error.message ===
-              'Target amount must be greater than zero' ||
-            error.message ===
-              'Invalid deadline'
-          )
-        ) {
-          return reply.status(400).send({
-            status: 'error',
-            message: error.message,
-          });
-        }
-
-        throw error;
-      }
+      return reply.status(201).send({
+        status: 'success',
+        goal,
+      });
     },
   );
 
@@ -117,9 +128,10 @@ export async function goalsRoutes(
       ],
     },
     async (request, reply) => {
-      const goals = await listGoals(
-        request.workspace.id,
-      );
+      const goals =
+        await listGoals(
+          request.workspace.id,
+        );
 
       return reply.status(200).send({
         status: 'success',
@@ -142,31 +154,147 @@ export async function goalsRoutes(
           goalId: string;
         };
 
-      try {
-        const progress =
-          await getGoalProgress(
-            request.workspace.id,
-            goalId,
-          );
+      const progress =
+        await getGoalProgress(
+          request.workspace.id,
+          goalId,
+        );
 
-        return reply.status(200).send({
-          status: 'success',
-          progress,
+      return reply.status(200).send({
+        status: 'success',
+        progress,
+      });
+    },
+  );
+
+  app.patch(
+    '/goals/:goalId',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { goalId } =
+        request.params as {
+          goalId: string;
+        };
+
+      const {
+        name,
+        targetAmount,
+        deadline,
+      } = request.body as {
+        name?: string;
+        targetAmount?: number;
+        deadline?: string | null;
+      };
+
+      if (
+        name === undefined &&
+        targetAmount === undefined &&
+        deadline === undefined
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'At least one goal field must be provided',
         });
-      } catch (error) {
+      }
+
+      let normalizedName:
+        | string
+        | undefined;
+
+      if (name !== undefined) {
+        normalizedName =
+          name.trim();
+
         if (
-          error instanceof Error &&
-          error.message ===
-            'Goal not found'
+          normalizedName.length < 2
         ) {
-          return reply.status(404).send({
+          return reply.status(400).send({
             status: 'error',
-            message: 'Goal not found',
+            message:
+              'Goal name must contain at least 2 characters',
           });
         }
-
-        throw error;
       }
+
+      if (
+        targetAmount !== undefined &&
+        (!Number.isFinite(
+          targetAmount,
+        ) ||
+          targetAmount <= 0)
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Target amount must be greater than zero',
+        });
+      }
+
+      let parsedDeadline:
+        | Date
+        | null
+        | undefined;
+
+      if (deadline === null) {
+        parsedDeadline = null;
+      } else if (
+        deadline !== undefined
+      ) {
+        parsedDeadline =
+          new Date(deadline);
+
+        if (
+          Number.isNaN(
+            parsedDeadline.getTime(),
+          )
+        ) {
+          return reply.status(400).send({
+            status: 'error',
+            message:
+              'Invalid deadline',
+          });
+        }
+      }
+
+      const goal =
+        await updateGoal({
+          workspaceId:
+            request.workspace.id,
+          goalId,
+          ...(normalizedName !== undefined
+            ? {
+                name:
+                  normalizedName,
+              }
+            : {}),
+          ...(targetAmount !== undefined
+            ? {
+                targetAmount,
+              }
+            : {}),
+          ...(parsedDeadline !== undefined
+            ? {
+                deadline:
+                  parsedDeadline,
+              }
+            : {}),
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        goal,
+      });
     },
   );
 
@@ -205,44 +333,64 @@ export async function goalsRoutes(
         });
       }
 
-      try {
-        const goal =
-          await updateGoalAmount({
-            workspaceId:
-              request.workspace.id,
-            goalId,
-            currentAmount,
-          });
-
-        return reply.status(200).send({
-          status: 'success',
-          goal,
+      if (
+        !Number.isFinite(
+          currentAmount,
+        ) ||
+        currentAmount < 0
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Current amount must be greater than or equal to zero',
         });
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (
-            error.message ===
-              'Current amount must be greater than or equal to zero' ||
-            error.message ===
-              'Goal not found'
-          )
-        ) {
-          return reply
-            .status(
-              error.message ===
-                'Goal not found'
-                ? 404
-                : 400,
-            )
-            .send({
-              status: 'error',
-              message: error.message,
-            });
-        }
-
-        throw error;
       }
+
+      const goal =
+        await updateGoalAmount({
+          workspaceId:
+            request.workspace.id,
+          goalId,
+          currentAmount,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        goal,
+      });
+    },
+  );
+
+  app.delete(
+    '/goals/:goalId',
+    {
+      preHandler: [
+        authenticate,
+        workspaceMiddleware,
+        requireWorkspaceRoles(
+          'OWNER',
+          'ADMIN',
+          'FINANCE',
+        ),
+      ],
+    },
+    async (request, reply) => {
+      const { goalId } =
+        request.params as {
+          goalId: string;
+        };
+
+      const goal =
+        await deleteGoal({
+          workspaceId:
+            request.workspace.id,
+          goalId,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        deletedGoal: goal,
+      });
     },
   );
 }
