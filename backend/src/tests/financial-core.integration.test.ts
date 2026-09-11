@@ -35,7 +35,7 @@ import {
 } from '../services/transfer.service.js';
 
 const TEST_PREFIX =
-  'FINPILOT_VITEST_CORE_';
+  'FINPILOT_CORE_VITEST_';
 
 async function createTestWorkspace() {
   return prisma.workspace.create({
@@ -73,14 +73,6 @@ async function cleanupTestData() {
         workspace.id,
     );
 
-  /*
-   * LedgerEntry depende das
-   * FinancialTransactions.
-   *
-   * Ao apagar as transações,
-   * os lançamentos de ledger
-   * associados são removidos.
-   */
   await prisma.financialTransaction.deleteMany({
     where: {
       workspaceId: {
