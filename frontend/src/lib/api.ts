@@ -1,5 +1,14 @@
 import type {
+  Account,
+  AccountBalance,
+  Category,
+  CreateAccountInput,
+  CreateTransactionInput,
   DashboardData,
+  EditableTransactionType,
+  FinancialTransaction,
+  UpdateAccountInput,
+  UpdateTransactionInput,
   User,
   Workspace,
 } from '../types/api';
@@ -11,6 +20,13 @@ const API_URL =
 interface ApiErrorResponse {
   status?: string;
   message?: string;
+}
+
+interface ApiRequestOptions {
+  method?: string;
+  token?: string;
+  workspaceId?: string;
+  body?: unknown;
 }
 
 interface LoginResponse {
@@ -32,6 +48,36 @@ interface WorkspacesResponse {
 interface DashboardResponse {
   status: 'success';
   dashboard: DashboardData;
+}
+
+interface TransactionsResponse {
+  status: 'success';
+  transactions: FinancialTransaction[];
+}
+
+interface TransactionResponse {
+  status: 'success';
+  transaction: FinancialTransaction;
+}
+
+interface AccountsResponse {
+  status: 'success';
+  accounts: Account[];
+}
+
+interface AccountResponse {
+  status: 'success';
+  account: Account;
+}
+
+interface AccountBalanceResponse {
+  status: 'success';
+  balance: AccountBalance;
+}
+
+interface CategoriesResponse {
+  status: 'success';
+  categories: Category[];
 }
 
 export class ApiError extends Error {
@@ -75,50 +121,87 @@ async function parseResponse<
   return data as T;
 }
 
+async function request<
+  T extends object,
+>(
+  path: string,
+  options:
+    ApiRequestOptions = {},
+): Promise<T> {
+  const headers:
+    Record<string, string> =
+      {};
+
+  if (options.token) {
+    headers.Authorization =
+      `Bearer ${options.token}`;
+  }
+
+  if (options.workspaceId) {
+    headers['x-workspace-id'] =
+      options.workspaceId;
+  }
+
+  if (
+    options.body !== undefined
+  ) {
+    headers['Content-Type'] =
+      'application/json';
+  }
+
+  const response =
+    await fetch(
+      `${API_URL}${path}`,
+      {
+        method:
+          options.method ??
+          'GET',
+
+        headers,
+
+        ...(options.body !==
+        undefined
+          ? {
+              body:
+                JSON.stringify(
+                  options.body,
+                ),
+            }
+          : {}),
+      },
+    );
+
+  return parseResponse<T>(
+    response,
+  );
+}
+
 export async function login(
   email: string,
   password: string,
 ): Promise<LoginResponse> {
-  const response =
-    await fetch(
-      `${API_URL}/auth/login`,
-      {
-        method: 'POST',
+  return request<LoginResponse>(
+    '/auth/login',
+    {
+      method: 'POST',
 
-        headers: {
-          'Content-Type':
-            'application/json',
-        },
-
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+      body: {
+        email,
+        password,
       },
-    );
-
-  return parseResponse<LoginResponse>(
-    response,
+    },
   );
 }
 
 export async function getCurrentUser(
   token: string,
 ): Promise<User> {
-  const response =
-    await fetch(
-      `${API_URL}/users/me`,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      },
-    );
-
   const data =
-    await parseResponse<UserResponse>(
-      response,
+    await request<UserResponse>(
+      '/users/me',
+      {
+        token,
+      },
     );
 
   return data.user;
@@ -127,20 +210,12 @@ export async function getCurrentUser(
 export async function getWorkspaces(
   token: string,
 ): Promise<Workspace[]> {
-  const response =
-    await fetch(
-      `${API_URL}/workspaces`,
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      },
-    );
-
   const data =
-    await parseResponse<WorkspacesResponse>(
-      response,
+    await request<WorkspacesResponse>(
+      '/workspaces',
+      {
+        token,
+      },
     );
 
   return data.workspaces;
@@ -159,24 +234,213 @@ export async function getDashboard(
       ? `?month=${period.month}&year=${period.year}`
       : '';
 
-  const response =
-    await fetch(
-      `${API_URL}/dashboard${query}`,
+  const data =
+    await request<DashboardResponse>(
+      `/dashboard${query}`,
       {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-
-          'x-workspace-id':
-            workspaceId,
-        },
+        token,
+        workspaceId,
       },
     );
 
+  return data.dashboard;
+}
+
+export async function getTransactions(
+  token: string,
+  workspaceId: string,
+  includeVoided = false,
+): Promise<
+  FinancialTransaction[]
+> {
+  const query =
+    includeVoided
+      ? '?includeVoided=true'
+      : '';
+
   const data =
-    await parseResponse<DashboardResponse>(
-      response,
+    await request<TransactionsResponse>(
+      `/transactions${query}`,
+      {
+        token,
+        workspaceId,
+      },
     );
 
-  return data.dashboard;
+  return data.transactions;
+}
+
+export async function createTransaction(
+  token: string,
+  workspaceId: string,
+  input: CreateTransactionInput,
+): Promise<FinancialTransaction> {
+  const data =
+    await request<TransactionResponse>(
+      '/transactions',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.transaction;
+}
+
+export async function updateTransaction(
+  token: string,
+  workspaceId: string,
+  transactionId: string,
+  input: UpdateTransactionInput,
+): Promise<FinancialTransaction> {
+  const data =
+    await request<TransactionResponse>(
+      `/transactions/${transactionId}`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.transaction;
+}
+
+export async function voidTransaction(
+  token: string,
+  workspaceId: string,
+  transactionId: string,
+): Promise<FinancialTransaction> {
+  const data =
+    await request<TransactionResponse>(
+      `/transactions/${transactionId}/void`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.transaction;
+}
+
+export async function getAccounts(
+  token: string,
+  workspaceId: string,
+  includeArchived = false,
+): Promise<Account[]> {
+  const query =
+    includeArchived
+      ? '?includeArchived=true'
+      : '';
+
+  const data =
+    await request<AccountsResponse>(
+      `/accounts${query}`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.accounts;
+}
+
+export async function createAccount(
+  token: string,
+  workspaceId: string,
+  input: CreateAccountInput,
+): Promise<Account> {
+  const data =
+    await request<AccountResponse>(
+      '/accounts',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.account;
+}
+
+export async function updateAccount(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+  input: UpdateAccountInput,
+): Promise<Account> {
+  const data =
+    await request<AccountResponse>(
+      `/accounts/${accountId}`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.account;
+}
+
+export async function archiveAccount(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+): Promise<Account> {
+  const data =
+    await request<AccountResponse>(
+      `/accounts/${accountId}/archive`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.account;
+}
+
+export async function getAccountBalance(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+): Promise<AccountBalance> {
+  const data =
+    await request<AccountBalanceResponse>(
+      `/accounts/${accountId}/balance`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.balance;
+}
+
+export async function getCategories(
+  token: string,
+  workspaceId: string,
+  type?: EditableTransactionType,
+): Promise<Category[]> {
+  const query =
+    type
+      ? `?type=${type}`
+      : '';
+
+  const data =
+    await request<CategoriesResponse>(
+      `/categories${query}`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.categories;
 }

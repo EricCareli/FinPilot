@@ -38,14 +38,24 @@ export function formatPercentage(
 export function formatDate(
   value: string,
 ): string {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return 'Data inválida';
+  }
+
   return new Intl.DateTimeFormat(
     'pt-BR',
     {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+      timeZone: 'UTC',
     },
-  ).format(
-    new Date(value),
-  );
+  ).format(date);
 }

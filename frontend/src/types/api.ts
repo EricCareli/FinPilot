@@ -8,6 +8,31 @@ export type WorkspaceRole =
   | 'FINANCE'
   | 'VIEWER';
 
+export type AccountType =
+  | 'CHECKING'
+  | 'SAVINGS'
+  | 'CASH'
+  | 'CREDIT_CARD'
+  | 'INVESTMENT'
+  | 'OTHER';
+
+export type AccountStatus =
+  | 'ACTIVE'
+  | 'ARCHIVED';
+
+export type Currency =
+  | 'BRL'
+  | 'USD'
+  | 'EUR';
+
+export type EditableTransactionType =
+  | 'INCOME'
+  | 'EXPENSE';
+
+export type LedgerEntryType =
+  | 'CREDIT'
+  | 'DEBIT';
+
 export interface User {
   id: string;
   name: string;
@@ -28,6 +53,116 @@ export interface Workspace {
 export type MoneyValue =
   | string
   | number;
+
+export interface Account {
+  id: string;
+  workspaceId: string;
+  name: string;
+  type: AccountType;
+  status: AccountStatus;
+  currency: Currency;
+  initialBalance: MoneyValue;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AccountBalance {
+  accountId: string;
+  currency: Currency;
+  balance: MoneyValue;
+}
+
+export interface CreateAccountInput {
+  name: string;
+  type: AccountType;
+  currency: Currency;
+  initialBalance: number;
+}
+
+export interface UpdateAccountInput {
+  name?: string;
+  type?: AccountType;
+  currency?: Currency;
+}
+
+export interface Category {
+  id: string;
+  workspaceId: string;
+  name: string;
+  type: EditableTransactionType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  transactionId: string;
+  accountId: string;
+  type: LedgerEntryType;
+  amount: MoneyValue;
+  createdAt: string;
+  account: Account;
+}
+
+export interface FinancialTransaction {
+  id: string;
+  workspaceId: string;
+  categoryId: string | null;
+  invoiceId: string | null;
+
+  installmentPurchaseId:
+    | string
+    | null;
+
+  refundForInstallmentPurchaseId:
+    | string
+    | null;
+
+  installmentNumber:
+    | number
+    | null;
+
+  type: string;
+  status: string;
+  description: string;
+  transactionDate: string;
+  createdAt: string;
+  updatedAt: string;
+
+  category:
+    | Category
+    | null;
+
+  entries: LedgerEntry[];
+
+  invoice:
+    | {
+        id: string;
+      }
+    | null;
+}
+
+export interface CreateTransactionInput {
+  accountId: string;
+  categoryId?: string;
+  type: EditableTransactionType;
+  amount: number;
+  description: string;
+  transactionDate: string;
+}
+
+export interface UpdateTransactionInput {
+  accountId?: string;
+
+  categoryId?:
+    | string
+    | null;
+
+  type?: EditableTransactionType;
+  amount?: number;
+  description?: string;
+  transactionDate?: string;
+}
 
 export interface DashboardAccount {
   id: string;
@@ -62,6 +197,7 @@ export interface DashboardBudget {
   spent: MoneyValue;
   remaining: MoneyValue;
   percentageUsed: MoneyValue;
+
   status:
     | 'ON_TRACK'
     | 'WARNING'
@@ -82,9 +218,11 @@ export interface DashboardCreditCard {
 
 export interface DashboardRecentTransaction {
   id: string;
+
   type:
     | 'INCOME'
     | 'EXPENSE';
+
   description: string;
   transactionDate: string;
 
@@ -140,6 +278,7 @@ export interface DashboardData {
     totalCreditLimit: MoneyValue;
     totalCreditUsed: MoneyValue;
     totalCreditAvailable: MoneyValue;
+
     cards:
       DashboardCreditCard[];
   };

@@ -9,20 +9,29 @@ import type {
 } from 'react';
 
 import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+} from 'react-router-dom';
+
+import {
   ApiError,
   getCurrentUser,
-  getDashboard,
   getWorkspaces,
   login,
 } from './lib/api';
 
 import type {
-  DashboardData,
   User,
   Workspace,
 } from './types/api';
 
+import AppLayout from './components/AppLayout';
+import AccountsPage from './pages/AccountsPage';
 import DashboardPage from './pages/DashboardPage';
+import PlaceholderPage from './pages/PlaceholderPage';
+import TransactionsPage from './pages/TransactionsPage';
 
 import './App.css';
 
@@ -32,19 +41,10 @@ const TOKEN_KEY =
 const WORKSPACE_KEY =
   'finpilot_workspace_id';
 
-function getCurrentPeriod() {
-  const date =
-    new Date();
-
-  return {
-    month:
-      date.getMonth() + 1,
-    year:
-      date.getFullYear(),
-  };
-}
-
 function App() {
+  const navigate =
+    useNavigate();
+
   const [
     token,
     setToken,
@@ -98,40 +98,10 @@ function App() {
     );
 
   const [
-    dashboard,
-    setDashboard,
-  ] =
-    useState<DashboardData | null>(
-      null,
-    );
-
-  const [
     loadingApp,
     setLoadingApp,
   ] = useState(
     Boolean(token),
-  );
-
-  const [
-    loadingDashboard,
-    setLoadingDashboard,
-  ] = useState(false);
-
-  const currentPeriod =
-    getCurrentPeriod();
-
-  const [
-    month,
-    setMonth,
-  ] = useState(
-    currentPeriod.month,
-  );
-
-  const [
-    year,
-    setYear,
-  ] = useState(
-    currentPeriod.year,
   );
 
   const [
@@ -153,11 +123,9 @@ function App() {
       setUser(null);
       setWorkspace(null);
       setWorkspaces([]);
-      setDashboard(null);
       setPassword('');
       setAppError('');
       setLoadingApp(false);
-      setLoadingDashboard(false);
     }, []);
 
   const handleApiError =
@@ -203,6 +171,7 @@ function App() {
             getCurrentUser(
               token!,
             ),
+
             getWorkspaces(
               token!,
             ),
@@ -212,7 +181,10 @@ function App() {
           return;
         }
 
-        setUser(currentUser);
+        setUser(
+          currentUser,
+        );
+
         setWorkspaces(
           availableWorkspaces,
         );
@@ -251,11 +223,15 @@ function App() {
         );
       } catch (error) {
         if (!cancelled) {
-          handleApiError(error);
+          handleApiError(
+            error,
+          );
         }
       } finally {
         if (!cancelled) {
-          setLoadingApp(false);
+          setLoadingApp(
+            false,
+          );
         }
       }
     }
@@ -270,62 +246,9 @@ function App() {
     handleApiError,
   ]);
 
-  useEffect(() => {
-    if (
-      !token ||
-      !workspace
-    ) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadDashboard() {
-      setLoadingDashboard(true);
-      setAppError('');
-
-      try {
-        const data =
-          await getDashboard(
-            token!,
-            workspace!.id,
-            {
-              month,
-              year,
-            },
-          );
-
-        if (!cancelled) {
-          setDashboard(data);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          handleApiError(error);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingDashboard(
-            false,
-          );
-        }
-      }
-    }
-
-    void loadDashboard();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    token,
-    workspace,
-    month,
-    year,
-    handleApiError,
-  ]);
-
   async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
+    event:
+      FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
@@ -346,6 +269,13 @@ function App() {
 
       setToken(
         response.token,
+      );
+
+      navigate(
+        '/dashboard',
+        {
+          replace: true,
+        },
       );
     } catch (error) {
       setLoginError(
@@ -380,14 +310,6 @@ function App() {
       WORKSPACE_KEY,
       nextWorkspace.id,
     );
-  }
-
-  function handlePeriodChange(
-    nextMonth: number,
-    nextYear: number,
-  ) {
-    setMonth(nextMonth);
-    setYear(nextYear);
   }
 
   if (!token) {
@@ -580,9 +502,7 @@ function App() {
 
   if (
     appError &&
-    (!user ||
-      !workspace ||
-      !dashboard)
+    (!user || !workspace)
   ) {
     return (
       <main className="app-error-screen">
@@ -593,7 +513,7 @@ function App() {
 
           <h1>
             Não foi possível carregar
-            seu painel
+            sua conta
           </h1>
 
           <p>
@@ -613,7 +533,9 @@ function App() {
           <button
             type="button"
             className="secondary-button"
-            onClick={logout}
+            onClick={
+              logout
+            }
           >
             Sair da conta
           </button>
@@ -624,8 +546,7 @@ function App() {
 
   if (
     !user ||
-    !workspace ||
-    !dashboard
+    !workspace
   ) {
     return (
       <main className="app-loading-screen">
@@ -645,30 +566,119 @@ function App() {
   }
 
   return (
-    <DashboardPage
-      user={user}
-      workspaces={
-        workspaces
-      }
-      workspace={
-        workspace
-      }
-      dashboard={
-        dashboard
-      }
-      month={month}
-      year={year}
-      loading={
-        loadingDashboard
-      }
-      onWorkspaceChange={
-        handleWorkspaceChange
-      }
-      onPeriodChange={
-        handlePeriodChange
-      }
-      onLogout={logout}
-    />
+    <Routes>
+      <Route
+        element={
+          <AppLayout
+            token={token}
+            user={user}
+            workspace={
+              workspace
+            }
+            workspaces={
+              workspaces
+            }
+            onWorkspaceChange={
+              handleWorkspaceChange
+            }
+            onLogout={
+              logout
+            }
+          />
+        }
+      >
+        <Route
+          path="/dashboard"
+          element={
+            <DashboardPage />
+          }
+        />
+
+        <Route
+          path="/transactions"
+          element={
+            <TransactionsPage />
+          }
+        />
+
+        <Route
+          path="/accounts"
+          element={
+            <AccountsPage />
+          }
+        />
+
+        <Route
+          path="/cards"
+          element={
+            <PlaceholderPage
+              title="Cartões"
+              description="Controle cartões, limites, compras e faturas."
+            />
+          }
+        />
+
+        <Route
+          path="/budgets"
+          element={
+            <PlaceholderPage
+              title="Orçamentos"
+              description="Planeje seus gastos e acompanhe seus limites mensais."
+            />
+          }
+        />
+
+        <Route
+          path="/goals"
+          element={
+            <PlaceholderPage
+              title="Metas"
+              description="Transforme seus objetivos financeiros em planos acompanháveis."
+            />
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            <PlaceholderPage
+              title="Relatórios"
+              description="Analise sua evolução financeira com mais profundidade."
+            />
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <PlaceholderPage
+              title="Configurações"
+              description="Personalize sua experiência no FinPilot."
+            />
+          }
+        />
+      </Route>
+
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to="/dashboard"
+            replace
+          />
+        }
+      />
+
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/dashboard"
+            replace
+          />
+        }
+      />
+    </Routes>
   );
 }
 
