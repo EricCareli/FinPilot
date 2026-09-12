@@ -11,6 +11,7 @@
 export type * from './models/User.js'
 export type * from './models/EmailVerificationCode.js'
 export type * from './models/PasswordResetCode.js'
+export type * from './models/EmailChangeCode.js'
 export type * from './models/Workspace.js'
 export type * from './models/WorkspaceMember.js'
 export type * from './models/Account.js'

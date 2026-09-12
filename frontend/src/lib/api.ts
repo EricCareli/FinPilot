@@ -96,6 +96,20 @@ interface ChangePasswordResponse {
   message: string;
 }
 
+interface EmailChangeRequestResponse {
+  status: 'success';
+  message: string;
+  newEmail: string;
+  expiresAt: string;
+}
+
+interface EmailChangeVerifyResponse {
+  status: 'success';
+  message: string;
+  user: User;
+  token: string;
+}
+
 interface UserResponse {
   status: 'success';
   user: User;
@@ -538,8 +552,7 @@ export async function getCurrentUser(
 export async function updateUserProfile(
   token: string,
   input: {
-    name?: string;
-    email?: string;
+    name: string;
   },
 ): Promise<User> {
   const data =
@@ -553,6 +566,64 @@ export async function updateUserProfile(
     );
 
   return data.user;
+}
+
+export async function requestUserEmailChange(
+  token: string,
+  newEmail: string,
+  currentPassword: string,
+): Promise<{
+  newEmail: string;
+  expiresAt: string;
+}> {
+  const data =
+    await request<EmailChangeRequestResponse>(
+      '/users/me/email-change/request',
+      {
+        method: 'POST',
+        token,
+
+        body: {
+          newEmail,
+          currentPassword,
+        },
+      },
+    );
+
+  return {
+    newEmail:
+      data.newEmail,
+    expiresAt:
+      data.expiresAt,
+  };
+}
+
+export async function verifyUserEmailChange(
+  token: string,
+  code: string,
+): Promise<{
+  user: User;
+  token: string;
+}> {
+  const data =
+    await request<EmailChangeVerifyResponse>(
+      '/users/me/email-change/verify',
+      {
+        method: 'POST',
+        token,
+
+        body: {
+          code,
+        },
+      },
+    );
+
+  return {
+    user:
+      data.user,
+    token:
+      data.token,
+  };
 }
 
 export async function changeUserPassword(

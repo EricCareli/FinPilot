@@ -142,13 +142,10 @@ describe(
     );
 
     test(
-      'updates and normalizes user name and email',
+      'updates and normalizes the user name without changing the email',
       async () => {
         const user =
           await createTestUser();
-
-        const newEmail =
-          `${TEST_EMAIL_PREFIX}${randomUUID()}@example.com`;
 
         const updated =
           await updateUserProfile({
@@ -156,8 +153,6 @@ describe(
               user.id,
             name:
               '  Eric Atualizado  ',
-            email:
-              `  ${newEmail.toUpperCase()}  `,
           });
 
         expect(
@@ -169,7 +164,7 @@ describe(
         expect(
           updated.email,
         ).toBe(
-          newEmail.toLowerCase(),
+          user.email,
         );
 
         expect(
@@ -193,25 +188,16 @@ describe(
         expect(
           persisted.email,
         ).toBe(
-          newEmail.toLowerCase(),
+          user.email,
         );
       },
     );
 
     test(
-      'validates profile update fields',
+      'validates profile name updates',
       async () => {
         const user =
           await createTestUser();
-
-        await expect(
-          updateUserProfile({
-            userId:
-              user.id,
-          }),
-        ).rejects.toThrow(
-          'At least one profile field must be provided',
-        );
 
         await expect(
           updateUserProfile({
@@ -222,17 +208,6 @@ describe(
           }),
         ).rejects.toThrow(
           'Name must contain at least 2 characters',
-        );
-
-        await expect(
-          updateUserProfile({
-            userId:
-              user.id,
-            email:
-              'invalid-email',
-          }),
-        ).rejects.toThrow(
-          'Invalid email',
         );
 
         const persisted =
@@ -248,41 +223,27 @@ describe(
         ).toBe(
           'FinPilot User Test',
         );
-      },
-    );
-
-    test(
-      'rejects changing the profile email to an email already registered',
-      async () => {
-        const firstUser =
-          await createTestUser();
-
-        const secondUser =
-          await createTestUser();
-
-        await expect(
-          updateUserProfile({
-            userId:
-              firstUser.id,
-            email:
-              secondUser.email,
-          }),
-        ).rejects.toThrow(
-          'Email already registered',
-        );
-
-        const persisted =
-          await prisma.user.findUniqueOrThrow({
-            where: {
-              id:
-                firstUser.id,
-            },
-          });
 
         expect(
           persisted.email,
         ).toBe(
-          firstUser.email,
+          user.email,
+        );
+      },
+    );
+
+    test(
+      'rejects profile updates for a missing user',
+      async () => {
+        await expect(
+          updateUserProfile({
+            userId:
+              randomUUID(),
+            name:
+              'Eric Atualizado',
+          }),
+        ).rejects.toThrow(
+          'User not found',
         );
       },
     );

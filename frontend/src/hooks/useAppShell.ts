@@ -19,6 +19,9 @@ export interface AppShellContext {
   onUserUpdate:
     (user: User) => void;
 
+  onTokenUpdate:
+    (token: string) => void;
+
   onLogout: () => void;
 }
 

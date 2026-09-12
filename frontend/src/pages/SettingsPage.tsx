@@ -43,8 +43,10 @@ import {
   getTransactions,
   getWorkspaceMembers,
   removeWorkspaceMember,
+  requestUserEmailChange,
   updateUserProfile,
   updateWorkspace,
+  verifyUserEmailChange,
   updateWorkspaceMemberRole,
 } from '../lib/api';
 
@@ -138,6 +140,7 @@ function SettingsPage() {
     workspaces,
     onWorkspaceChange,
     onUserUpdate,
+    onTokenUpdate,
     onLogout,
   } = useAppShell();
 
@@ -161,6 +164,53 @@ function SettingsPage() {
   const [
     profileError,
     setProfileError,
+  ] = useState('');
+
+  const [
+    emailChangeStep,
+    setEmailChangeStep,
+  ] = useState<
+    'request' | 'verify'
+  >('request');
+
+  const [
+    newEmail,
+    setNewEmail,
+  ] = useState('');
+
+  const [
+    emailChangePassword,
+    setEmailChangePassword,
+  ] = useState('');
+
+  const [
+    emailChangeCode,
+    setEmailChangeCode,
+  ] = useState('');
+
+  const [
+    pendingEmail,
+    setPendingEmail,
+  ] = useState('');
+
+  const [
+    requestingEmailChange,
+    setRequestingEmailChange,
+  ] = useState(false);
+
+  const [
+    verifyingEmailChange,
+    setVerifyingEmailChange,
+  ] = useState(false);
+
+  const [
+    emailChangeSuccess,
+    setEmailChangeSuccess,
+  ] = useState('');
+
+  const [
+    emailChangeError,
+    setEmailChangeError,
   ] = useState('');
 
   const [
@@ -524,6 +574,243 @@ function SettingsPage() {
     } finally {
       setSavingProfile(false);
     }
+  }
+
+  async function handleEmailChangeRequest(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setEmailChangeSuccess('');
+    setEmailChangeError('');
+
+    const normalizedEmail =
+      newEmail.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setEmailChangeError(
+        'Digite o novo e-mail.',
+      );
+      return;
+    }
+
+    if (
+      normalizedEmail ===
+      user.email.toLowerCase()
+    ) {
+      setEmailChangeError(
+        'O novo e-mail deve ser diferente do atual.',
+      );
+      return;
+    }
+
+    if (!emailChangePassword) {
+      setEmailChangeError(
+        'Digite sua senha atual para confirmar a alteração.',
+      );
+      return;
+    }
+
+    setRequestingEmailChange(true);
+
+    try {
+      const result =
+        await requestUserEmailChange(
+          token,
+          normalizedEmail,
+          emailChangePassword,
+        );
+
+      setPendingEmail(
+        result.newEmail,
+      );
+      setNewEmail(
+        result.newEmail,
+      );
+      setEmailChangePassword('');
+      setEmailChangeCode('');
+      setEmailChangeStep(
+        'verify',
+      );
+
+      setEmailChangeSuccess(
+        `Enviamos um código de 6 dígitos para ${result.newEmail}.`,
+      );
+    } catch (caughtError) {
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401 &&
+        caughtError.message ===
+          'Current password is incorrect'
+      ) {
+        setEmailChangeError(
+          'A senha atual está incorreta.',
+        );
+        return;
+      }
+
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401
+      ) {
+        onLogout();
+        return;
+      }
+
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.message ===
+          'Email already registered'
+      ) {
+        setEmailChangeError(
+          'Este e-mail já está cadastrado em outra conta.',
+        );
+        return;
+      }
+
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.message ===
+          'New email must be different from current email'
+      ) {
+        setEmailChangeError(
+          'O novo e-mail deve ser diferente do atual.',
+        );
+        return;
+      }
+
+      setEmailChangeError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Não foi possível enviar o código de confirmação.',
+      );
+    } finally {
+      setRequestingEmailChange(
+        false,
+      );
+    }
+  }
+
+  async function handleEmailChangeVerify(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setEmailChangeSuccess('');
+    setEmailChangeError('');
+
+    const normalizedCode =
+      emailChangeCode
+        .replace(/\D/g, '')
+        .slice(0, 6);
+
+    if (
+      normalizedCode.length !== 6
+    ) {
+      setEmailChangeError(
+        'Digite o código de 6 dígitos.',
+      );
+      return;
+    }
+
+    setVerifyingEmailChange(true);
+
+    try {
+      const result =
+        await verifyUserEmailChange(
+          token,
+          normalizedCode,
+        );
+
+      onTokenUpdate(
+        result.token,
+      );
+
+      onUserUpdate(
+        result.user,
+      );
+
+      setMembers((currentMembers) =>
+        currentMembers.map((member) =>
+          member.user.id ===
+          result.user.id
+            ? {
+                ...member,
+                user: {
+                  ...member.user,
+                  name:
+                    result.user.name,
+                  email:
+                    result.user.email,
+                },
+              }
+            : member,
+        ),
+      );
+
+      setEmailChangeStep(
+        'request',
+      );
+      setNewEmail('');
+      setPendingEmail('');
+      setEmailChangeCode('');
+
+      setEmailChangeSuccess(
+        'E-mail alterado e confirmado com sucesso.',
+      );
+    } catch (caughtError) {
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401
+      ) {
+        onLogout();
+        return;
+      }
+
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.message ===
+          'Invalid verification code'
+      ) {
+        setEmailChangeError(
+          'Código de verificação inválido.',
+        );
+        return;
+      }
+
+      setEmailChangeError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Não foi possível confirmar o novo e-mail.',
+      );
+    } finally {
+      setVerifyingEmailChange(
+        false,
+      );
+    }
+  }
+
+  function cancelEmailChange() {
+    setEmailChangeStep(
+      'request',
+    );
+    setNewEmail('');
+    setEmailChangePassword('');
+    setEmailChangeCode('');
+    setPendingEmail('');
+    setEmailChangeSuccess('');
+    setEmailChangeError('');
   }
 
   async function handleWorkspaceSubmit(
@@ -1182,9 +1469,178 @@ function SettingsPage() {
           <div className="settings-info-note">
             <ShieldCheck size={16} />
             <p>
-              O nome pode ser atualizado aqui. A alteração de e-mail ficará disponível com uma nova verificação do endereço, para manter a conta protegida.
+              Para alterar o e-mail, confirme sua senha atual e depois o código enviado ao novo endereço. O e-mail atual continua ativo até a confirmação.
             </p>
           </div>
+
+          {emailChangeStep ===
+          'request' ? (
+            <form
+              className="settings-workspace-form"
+              onSubmit={
+                handleEmailChangeRequest
+              }
+            >
+              <label className="settings-field">
+                <span>
+                  Novo e-mail
+                </span>
+
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(
+                    event: ChangeEvent<HTMLInputElement>,
+                  ) => {
+                    setNewEmail(
+                      event.target.value,
+                    );
+                    setEmailChangeSuccess('');
+                    setEmailChangeError('');
+                  }}
+                  placeholder="novo@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+
+              <label className="settings-field">
+                <span>
+                  Senha atual
+                </span>
+
+                <input
+                  type="password"
+                  value={
+                    emailChangePassword
+                  }
+                  onChange={(
+                    event: ChangeEvent<HTMLInputElement>,
+                  ) => {
+                    setEmailChangePassword(
+                      event.target.value,
+                    );
+                    setEmailChangeSuccess('');
+                    setEmailChangeError('');
+                  }}
+                  placeholder="Confirme sua senha atual"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="settings-secondary-button"
+                disabled={
+                  requestingEmailChange
+                }
+              >
+                <Mail size={16} />
+                {requestingEmailChange
+                  ? 'Enviando código...'
+                  : 'Alterar e-mail'}
+              </button>
+            </form>
+          ) : (
+            <form
+              className="settings-workspace-form"
+              onSubmit={
+                handleEmailChangeVerify
+              }
+            >
+              <div className="settings-info-note">
+                <Mail size={16} />
+                <p>
+                  Digite o código enviado para <strong>{pendingEmail}</strong>.
+                </p>
+              </div>
+
+              <label className="settings-field">
+                <span>
+                  Código de confirmação
+                </span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={
+                    emailChangeCode
+                  }
+                  onChange={(
+                    event: ChangeEvent<HTMLInputElement>,
+                  ) => {
+                    setEmailChangeCode(
+                      event.target.value
+                        .replace(
+                          /\D/g,
+                          '',
+                        )
+                        .slice(0, 6),
+                    );
+                    setEmailChangeSuccess('');
+                    setEmailChangeError('');
+                  }}
+                  placeholder="000000"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  required
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="settings-primary-button"
+                disabled={
+                  verifyingEmailChange
+                }
+              >
+                <BadgeCheck size={16} />
+                {verifyingEmailChange
+                  ? 'Confirmando...'
+                  : 'Confirmar novo e-mail'}
+              </button>
+
+              <button
+                type="button"
+                className="settings-secondary-button"
+                onClick={
+                  cancelEmailChange
+                }
+                disabled={
+                  verifyingEmailChange
+                }
+              >
+                <X size={16} />
+                Cancelar
+              </button>
+            </form>
+          )}
+
+          {(emailChangeSuccess ||
+            emailChangeError) && (
+            <div
+              className={`settings-feedback ${
+                emailChangeError
+                  ? 'error'
+                  : 'success'
+              }`}
+              role="status"
+            >
+              {emailChangeError ? (
+                <X size={18} />
+              ) : (
+                <CheckCircle2
+                  size={18}
+                />
+              )}
+
+              <span>
+                {emailChangeError ||
+                  emailChangeSuccess}
+              </span>
+            </div>
+          )}
         </section>
 
         <section className="settings-panel">

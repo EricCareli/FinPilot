@@ -33,6 +33,11 @@ export type EmailVerificationCode = Prisma.EmailVerificationCodeModel
  */
 export type PasswordResetCode = Prisma.PasswordResetCodeModel
 /**
+ * Model EmailChangeCode
+ * 
+ */
+export type EmailChangeCode = Prisma.EmailChangeCodeModel
+/**
  * Model Workspace
  * 
  */

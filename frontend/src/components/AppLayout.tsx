@@ -41,6 +41,9 @@ interface AppLayoutProps {
   onUserUpdate:
     (user: User) => void;
 
+  onTokenUpdate:
+    (token: string) => void;
+
   onLogout: () => void;
 }
 
@@ -51,6 +54,7 @@ function AppLayout({
   workspaces,
   onWorkspaceChange,
   onUserUpdate,
+  onTokenUpdate,
   onLogout,
 }: AppLayoutProps) {
   const navigate =
@@ -486,6 +490,7 @@ function AppLayout({
             workspaces,
             onWorkspaceChange,
             onUserUpdate,
+            onTokenUpdate,
             onLogout,
           }}
         />

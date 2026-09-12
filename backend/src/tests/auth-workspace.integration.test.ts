@@ -13,7 +13,33 @@ import {
   describe,
   expect,
   test,
+  vi,
 } from 'vitest';
+
+const {
+  sendVerificationCodeMock,
+  sendPasswordResetCodeMock,
+  sendEmailChangeCodeMock,
+} = vi.hoisted(() => ({
+  sendVerificationCodeMock:
+    vi.fn(),
+  sendPasswordResetCodeMock:
+    vi.fn(),
+  sendEmailChangeCodeMock:
+    vi.fn(),
+}));
+
+vi.mock(
+  '../services/email.service.js',
+  () => ({
+    sendVerificationCode:
+      sendVerificationCodeMock,
+    sendPasswordResetCode:
+      sendPasswordResetCodeMock,
+    sendEmailChangeCode:
+      sendEmailChangeCodeMock,
+  }),
+);
 
 import { prisma } from '../lib/prisma.js';
 
@@ -328,6 +354,17 @@ async function registerUser(
     body.status,
   ).toBe('success');
 
+  await prisma.user.update({
+    where: {
+      id:
+        body.user.id,
+    },
+    data: {
+      emailVerifiedAt:
+        new Date(),
+    },
+  });
+
   return body.user;
 }
 
@@ -479,6 +516,15 @@ beforeAll(
 
 afterEach(
   async () => {
+    sendVerificationCodeMock
+      .mockReset();
+
+    sendPasswordResetCodeMock
+      .mockReset();
+
+    sendEmailChangeCodeMock
+      .mockReset();
+
     await cleanupTestData();
   },
 );

@@ -3,6 +3,11 @@ import type { FastifyInstance } from 'fastify';
 import { authenticate } from '../middlewares/auth.middleware.js';
 
 import {
+  requestEmailChange,
+  verifyEmailChangeCode,
+} from '../services/email-change.service.js';
+
+import {
   changeUserPassword,
   getUserProfile,
   updateUserProfile,
@@ -41,90 +46,156 @@ export async function usersRoutes(
     async (request, reply) => {
       const {
         name,
-        email,
       } = request.body as {
         name?: string;
-        email?: string;
       };
 
-      if (
-        name === undefined &&
-        email === undefined
-      ) {
+      if (name === undefined) {
         return reply.status(400).send({
           status: 'error',
           message:
-            'At least one profile field must be provided',
+            'Name is required',
         });
       }
 
-      let normalizedName:
-        | string
-        | undefined;
+      const normalizedName =
+        name.trim();
 
-      if (name !== undefined) {
-        normalizedName =
-          name.trim();
-
-        if (
-          normalizedName.length < 2
-        ) {
-          return reply
-            .status(400)
-            .send({
-              status: 'error',
-              message:
-                'Name must contain at least 2 characters',
-            });
-        }
-      }
-
-      let normalizedEmail:
-        | string
-        | undefined;
-
-      if (email !== undefined) {
-        normalizedEmail =
-          email
-            .trim()
-            .toLowerCase();
-
-        if (
-          !normalizedEmail.includes('@')
-        ) {
-          return reply
-            .status(400)
-            .send({
-              status: 'error',
-              message:
-                'Invalid email',
-            });
-        }
+      if (
+        normalizedName.length < 2
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Name must contain at least 2 characters',
+          });
       }
 
       const user =
         await updateUserProfile({
           userId:
             request.user.sub,
-          ...(normalizedName !==
-          undefined
-            ? {
-                name:
-                  normalizedName,
-              }
-            : {}),
-          ...(normalizedEmail !==
-          undefined
-            ? {
-                email:
-                  normalizedEmail,
-              }
-            : {}),
+          name:
+            normalizedName,
         });
 
       return reply.status(200).send({
         status: 'success',
         user,
+      });
+    },
+  );
+
+  app.post(
+    '/users/me/email-change/request',
+    {
+      preHandler: [
+        authenticate,
+      ],
+    },
+    async (request, reply) => {
+      const {
+        newEmail,
+        currentPassword,
+      } = request.body as {
+        newEmail?: string;
+        currentPassword?: string;
+      };
+
+      if (
+        !newEmail ||
+        !currentPassword
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'New email and current password are required',
+        });
+      }
+
+      const result =
+        await requestEmailChange({
+          userId:
+            request.user.sub,
+          newEmail:
+            newEmail
+              .trim()
+              .toLowerCase(),
+          currentPassword,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        message:
+          'Email change verification code sent',
+        newEmail:
+          result.newEmail,
+        expiresAt:
+          result.expiresAt,
+      });
+    },
+  );
+
+  app.post(
+    '/users/me/email-change/verify',
+    {
+      preHandler: [
+        authenticate,
+      ],
+    },
+    async (request, reply) => {
+      const {
+        code,
+      } = request.body as {
+        code?: string;
+      };
+
+      if (!code) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Verification code is required',
+        });
+      }
+
+      const normalizedCode =
+        code.trim();
+
+      if (
+        !/^\d{6}$/.test(
+          normalizedCode,
+        )
+      ) {
+        return reply.status(400).send({
+          status: 'error',
+          message:
+            'Verification code must contain exactly 6 digits',
+        });
+      }
+
+      const user =
+        await verifyEmailChangeCode({
+          userId:
+            request.user.sub,
+          code:
+            normalizedCode,
+        });
+
+      const token =
+        await app.jwt.sign({
+          sub: user.id,
+          email:
+            user.email,
+        });
+
+      return reply.status(200).send({
+        status: 'success',
+        message:
+          'Email changed successfully',
+        user,
+        token,
       });
     },
   );

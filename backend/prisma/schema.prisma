@@ -96,6 +96,7 @@ model User {
   workspaceMemberships  WorkspaceMember[]
   emailVerificationCode EmailVerificationCode?
   passwordResetCode     PasswordResetCode?
+  emailChangeCode       EmailChangeCode?
 
   @@map("users")
 }
@@ -133,6 +134,24 @@ model PasswordResetCode {
   @@index([codeExpiresAt])
   @@index([resetTokenExpiresAt])
   @@map("password_reset_codes")
+}
+
+model EmailChangeCode {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  newEmail   String
+  codeHash   String
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([newEmail])
+  @@index([expiresAt])
+  @@map("email_change_codes")
 }
 
 model Workspace {

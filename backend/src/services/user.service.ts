@@ -5,8 +5,7 @@ import { AppError } from '../errors/app-error.js';
 
 export interface UpdateUserProfileInput {
   userId: string;
-  name?: string;
-  email?: string;
+  name: string;
 }
 
 export interface ChangeUserPasswordInput {
@@ -45,12 +44,14 @@ export async function getUserProfile(
 export async function updateUserProfile(
   input: UpdateUserProfileInput,
 ) {
+  const normalizedName =
+    input.name.trim();
+
   if (
-    input.name === undefined &&
-    input.email === undefined
+    normalizedName.length < 2
   ) {
     throw new AppError(
-      'At least one profile field must be provided',
+      'Name must contain at least 2 characters',
       400,
     );
   }
@@ -59,6 +60,9 @@ export async function updateUserProfile(
     await prisma.user.findUnique({
       where: {
         id: input.userId,
+      },
+      select: {
+        id: true,
       },
     });
 
@@ -69,83 +73,13 @@ export async function updateUserProfile(
     );
   }
 
-  let normalizedName:
-    | string
-    | undefined;
-
-  if (input.name !== undefined) {
-    normalizedName =
-      input.name.trim();
-
-    if (
-      normalizedName.length < 2
-    ) {
-      throw new AppError(
-        'Name must contain at least 2 characters',
-        400,
-      );
-    }
-  }
-
-  let normalizedEmail:
-    | string
-    | undefined;
-
-  if (input.email !== undefined) {
-    normalizedEmail =
-      input.email
-        .trim()
-        .toLowerCase();
-
-    if (
-      !normalizedEmail.includes('@')
-    ) {
-      throw new AppError(
-        'Invalid email',
-        400,
-      );
-    }
-
-    if (
-      normalizedEmail !== user.email
-    ) {
-      const existingUser =
-        await prisma.user.findUnique({
-          where: {
-            email:
-              normalizedEmail,
-          },
-          select: {
-            id: true,
-          },
-        });
-
-      if (existingUser) {
-        throw new AppError(
-          'Email already registered',
-          409,
-        );
-      }
-    }
-  }
-
   return prisma.user.update({
     where: {
       id: user.id,
     },
     data: {
-      ...(normalizedName !== undefined
-        ? {
-            name:
-              normalizedName,
-          }
-        : {}),
-      ...(normalizedEmail !== undefined
-        ? {
-            email:
-              normalizedEmail,
-          }
-        : {}),
+      name:
+        normalizedName,
     },
     select: {
       id: true,

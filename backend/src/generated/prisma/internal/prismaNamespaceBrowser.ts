@@ -54,6 +54,7 @@ export const ModelName = {
   User: 'User',
   EmailVerificationCode: 'EmailVerificationCode',
   PasswordResetCode: 'PasswordResetCode',
+  EmailChangeCode: 'EmailChangeCode',
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   Account: 'Account',
@@ -125,6 +126,21 @@ export const PasswordResetCodeScalarFieldEnum = {
 } as const
 
 export type PasswordResetCodeScalarFieldEnum = (typeof PasswordResetCodeScalarFieldEnum)[keyof typeof PasswordResetCodeScalarFieldEnum]
+
+
+export const EmailChangeCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  newEmail: 'newEmail',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailChangeCodeScalarFieldEnum = (typeof EmailChangeCodeScalarFieldEnum)[keyof typeof EmailChangeCodeScalarFieldEnum]
 
 
 export const WorkspaceScalarFieldEnum = {

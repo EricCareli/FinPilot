@@ -1028,6 +1028,17 @@ function App() {
     setUser(nextUser);
   }
 
+  function handleTokenUpdate(
+    nextToken: string,
+  ) {
+    localStorage.setItem(
+      TOKEN_KEY,
+      nextToken,
+    );
+
+    setToken(nextToken);
+  }
+
   function handleWorkspaceChange(
     workspaceId: string,
   ) {
@@ -1913,6 +1924,9 @@ function App() {
             }
             onUserUpdate={
               handleUserUpdate
+            }
+            onTokenUpdate={
+              handleTokenUpdate
             }
             onLogout={
               logout

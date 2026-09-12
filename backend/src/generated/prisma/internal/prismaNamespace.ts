@@ -400,6 +400,7 @@ export const ModelName = {
   User: 'User',
   EmailVerificationCode: 'EmailVerificationCode',
   PasswordResetCode: 'PasswordResetCode',
+  EmailChangeCode: 'EmailChangeCode',
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   Account: 'Account',
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "emailVerificationCode" | "passwordResetCode" | "workspace" | "workspaceMember" | "account" | "creditCard" | "creditCardInvoice" | "creditCardInstallmentPurchase" | "category" | "financialTransaction" | "ledgerEntry" | "budget" | "goal" | "recurringTransaction"
+    modelProps: "user" | "emailVerificationCode" | "passwordResetCode" | "emailChangeCode" | "workspace" | "workspaceMember" | "account" | "creditCard" | "creditCardInvoice" | "creditCardInstallmentPurchase" | "category" | "financialTransaction" | "ledgerEntry" | "budget" | "goal" | "recurringTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -650,6 +651,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PasswordResetCodeCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PasswordResetCodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmailChangeCode: {
+      payload: Prisma.$EmailChangeCodePayload<ExtArgs>
+      fields: Prisma.EmailChangeCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmailChangeCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmailChangeCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        findFirst: {
+          args: Prisma.EmailChangeCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmailChangeCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        findMany: {
+          args: Prisma.EmailChangeCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>[]
+        }
+        create: {
+          args: Prisma.EmailChangeCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        createMany: {
+          args: Prisma.EmailChangeCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EmailChangeCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>[]
+        }
+        delete: {
+          args: Prisma.EmailChangeCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        update: {
+          args: Prisma.EmailChangeCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.EmailChangeCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmailChangeCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EmailChangeCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.EmailChangeCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmailChangeCodePayload>
+        }
+        aggregate: {
+          args: Prisma.EmailChangeCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmailChangeCode>
+        }
+        groupBy: {
+          args: Prisma.EmailChangeCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailChangeCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmailChangeCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmailChangeCodeCountAggregateOutputType> | number
         }
       }
     }
@@ -1623,6 +1698,21 @@ export const PasswordResetCodeScalarFieldEnum = {
 export type PasswordResetCodeScalarFieldEnum = (typeof PasswordResetCodeScalarFieldEnum)[keyof typeof PasswordResetCodeScalarFieldEnum]
 
 
+export const EmailChangeCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  newEmail: 'newEmail',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmailChangeCodeScalarFieldEnum = (typeof EmailChangeCodeScalarFieldEnum)[keyof typeof EmailChangeCodeScalarFieldEnum]
+
+
 export const WorkspaceScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2219,6 +2309,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   emailVerificationCode?: Prisma.EmailVerificationCodeOmit
   passwordResetCode?: Prisma.PasswordResetCodeOmit
+  emailChangeCode?: Prisma.EmailChangeCodeOmit
   workspace?: Prisma.WorkspaceOmit
   workspaceMember?: Prisma.WorkspaceMemberOmit
   account?: Prisma.AccountOmit
