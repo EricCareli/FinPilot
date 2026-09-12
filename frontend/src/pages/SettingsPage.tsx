@@ -43,6 +43,7 @@ import {
   getTransactions,
   getWorkspaceMembers,
   removeWorkspaceMember,
+  updateUserProfile,
   updateWorkspace,
   updateWorkspaceMemberRole,
 } from '../lib/api';
@@ -136,8 +137,31 @@ function SettingsPage() {
     workspace,
     workspaces,
     onWorkspaceChange,
+    onUserUpdate,
     onLogout,
   } = useAppShell();
+
+  const [
+    profileName,
+    setProfileName,
+  ] = useState(
+    user.name,
+  );
+
+  const [
+    savingProfile,
+    setSavingProfile,
+  ] = useState(false);
+
+  const [
+    profileSuccess,
+    setProfileSuccess,
+  ] = useState('');
+
+  const [
+    profileError,
+    setProfileError,
+  ] = useState('');
 
   const [
     workspaceName,
@@ -269,6 +293,10 @@ function SettingsPage() {
             ),
       [canAssignOwner],
     );
+
+  const profileChanged =
+    profileName.trim() !==
+    user.name;
 
   const workspaceChanged =
     workspaceName.trim() !==
@@ -405,6 +433,96 @@ function SettingsPage() {
       setPageError(
         `Não foi possível copiar ${label.toLowerCase()}.`,
       );
+    }
+  }
+
+  async function handleProfileSubmit(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setProfileSuccess('');
+    setProfileError('');
+
+    const normalizedName =
+      profileName.trim();
+
+    if (
+      normalizedName.length < 2
+    ) {
+      setProfileError(
+        'O nome deve ter pelo menos 2 caracteres.',
+      );
+      return;
+    }
+
+    if (
+      normalizedName ===
+      user.name
+    ) {
+      return;
+    }
+
+    setSavingProfile(true);
+
+    try {
+      const updatedUser =
+        await updateUserProfile(
+          token,
+          {
+            name:
+              normalizedName,
+          },
+        );
+
+      onUserUpdate(
+        updatedUser,
+      );
+
+      setProfileName(
+        updatedUser.name,
+      );
+
+      setMembers((currentMembers) =>
+        currentMembers.map((member) =>
+          member.user.id ===
+          updatedUser.id
+            ? {
+                ...member,
+                user: {
+                  ...member.user,
+                  name:
+                    updatedUser.name,
+                  email:
+                    updatedUser.email,
+                },
+              }
+            : member,
+        ),
+      );
+
+      setProfileSuccess(
+        'Perfil atualizado com sucesso.',
+      );
+    } catch (caughtError) {
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401
+      ) {
+        onLogout();
+        return;
+      }
+
+      setProfileError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Não foi possível atualizar seu perfil.',
+      );
+    } finally {
+      setSavingProfile(false);
     }
   }
 
@@ -952,6 +1070,90 @@ function SettingsPage() {
             </span>
           </div>
 
+          <form
+            className="settings-workspace-form"
+            onSubmit={
+              handleProfileSubmit
+            }
+          >
+            <label className="settings-field">
+              <span>
+                Nome
+              </span>
+
+              <input
+                type="text"
+                value={profileName}
+                onChange={(
+                  event: ChangeEvent<HTMLInputElement>,
+                ) => {
+                  setProfileName(
+                    event.target.value,
+                  );
+                  setProfileSuccess('');
+                  setProfileError('');
+                }}
+                autoComplete="name"
+                minLength={2}
+                maxLength={120}
+                required
+              />
+            </label>
+
+            <label className="settings-field">
+              <span>
+                E-mail
+              </span>
+
+              <input
+                type="email"
+                value={user.email}
+                autoComplete="email"
+                disabled
+                readOnly
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="settings-primary-button"
+              disabled={
+                savingProfile ||
+                !profileChanged
+              }
+            >
+              <Save size={16} />
+              {savingProfile
+                ? 'Salvando...'
+                : 'Salvar perfil'}
+            </button>
+          </form>
+
+          {(profileSuccess ||
+            profileError) && (
+            <div
+              className={`settings-feedback ${
+                profileError
+                  ? 'error'
+                  : 'success'
+              }`}
+              role="status"
+            >
+              {profileError ? (
+                <X size={18} />
+              ) : (
+                <CheckCircle2
+                  size={18}
+                />
+              )}
+
+              <span>
+                {profileError ||
+                  profileSuccess}
+              </span>
+            </div>
+          )}
+
           <div className="settings-readonly-row">
             <div>
               <span>
@@ -978,9 +1180,9 @@ function SettingsPage() {
           </div>
 
           <div className="settings-info-note">
-            <KeyRound size={16} />
+            <ShieldCheck size={16} />
             <p>
-              Nome e e-mail permanecem disponíveis para consulta. Sua senha pode ser alterada com segurança na seção Segurança.
+              O nome pode ser atualizado aqui. A alteração de e-mail ficará disponível com uma nova verificação do endereço, para manter a conta protegida.
             </p>
           </div>
         </section>

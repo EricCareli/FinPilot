@@ -1022,6 +1022,12 @@ function App() {
     setConfirmPassword('');
   }
 
+  function handleUserUpdate(
+    nextUser: User,
+  ) {
+    setUser(nextUser);
+  }
+
   function handleWorkspaceChange(
     workspaceId: string,
   ) {
@@ -1904,6 +1910,9 @@ function App() {
             }
             onWorkspaceChange={
               handleWorkspaceChange
+            }
+            onUserUpdate={
+              handleUserUpdate
             }
             onLogout={
               logout

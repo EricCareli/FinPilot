@@ -535,6 +535,26 @@ export async function getCurrentUser(
   return data.user;
 }
 
+export async function updateUserProfile(
+  token: string,
+  input: {
+    name?: string;
+    email?: string;
+  },
+): Promise<User> {
+  const data =
+    await request<UserResponse>(
+      '/users/me',
+      {
+        method: 'PATCH',
+        token,
+        body: input,
+      },
+    );
+
+  return data.user;
+}
+
 export async function changeUserPassword(
   token: string,
   currentPassword: string,

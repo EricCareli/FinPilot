@@ -16,6 +16,9 @@ export interface AppShellContext {
   onWorkspaceChange:
     (workspaceId: string) => void;
 
+  onUserUpdate:
+    (user: User) => void;
+
   onLogout: () => void;
 }
 
