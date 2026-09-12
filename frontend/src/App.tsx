@@ -33,6 +33,7 @@ import BudgetsPage from './pages/BudgetsPage';
 import CreditCardsPage from './pages/CreditCardsPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
+import ReportsPage from './pages/ReportsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import TransactionsPage from './pages/TransactionsPage';
 
@@ -635,10 +636,7 @@ function App() {
         <Route
           path="/reports"
           element={
-            <PlaceholderPage
-              title="Relatórios"
-              description="Analise sua evolução financeira com mais profundidade."
-            />
+            <ReportsPage />
           }
         />
 
