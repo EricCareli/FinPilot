@@ -34,6 +34,7 @@ import type {
 import {
   ApiError,
   addWorkspaceMember,
+  changeUserPassword,
   getAccounts,
   getBudgets,
   getCategories,
@@ -220,6 +221,36 @@ function SettingsPage() {
     setExporting,
   ] = useState(false);
 
+  const [
+    currentPassword,
+    setCurrentPassword,
+  ] = useState('');
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState('');
+
+  const [
+    confirmNewPassword,
+    setConfirmNewPassword,
+  ] = useState('');
+
+  const [
+    changingPassword,
+    setChangingPassword,
+  ] = useState(false);
+
+  const [
+    passwordSuccess,
+    setPasswordSuccess,
+  ] = useState('');
+
+  const [
+    passwordError,
+    setPasswordError,
+  ] = useState('');
+
   const canManageWorkspace =
     workspace.role === 'OWNER' ||
     workspace.role === 'ADMIN';
@@ -352,6 +383,8 @@ function SettingsPage() {
   function clearMessages() {
     setPageError('');
     setSuccess('');
+    setPasswordError('');
+    setPasswordSuccess('');
   }
 
   async function copyText(
@@ -605,6 +638,102 @@ function SettingsPage() {
     }
   }
 
+  async function handlePasswordChange(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setPageError('');
+    setSuccess('');
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!currentPassword) {
+      setPasswordError(
+        'Digite sua senha atual.',
+      );
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError(
+        'A nova senha deve ter pelo menos 8 caracteres.',
+      );
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmNewPassword
+    ) {
+      setPasswordError(
+        'A confirmação da nova senha não confere.',
+      );
+      return;
+    }
+
+    if (
+      currentPassword ===
+      newPassword
+    ) {
+      setPasswordError(
+        'A nova senha deve ser diferente da senha atual.',
+      );
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      await changeUserPassword(
+        token,
+        currentPassword,
+        newPassword,
+      );
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+
+      setPasswordSuccess(
+        'Senha alterada com sucesso.',
+      );
+    } catch (caughtError) {
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401 &&
+        caughtError.message ===
+          'Current password is incorrect'
+      ) {
+        setPasswordError(
+          'A senha atual está incorreta.',
+        );
+        return;
+      }
+
+      if (
+        caughtError instanceof
+          ApiError &&
+        caughtError.statusCode ===
+          401
+      ) {
+        onLogout();
+        return;
+      }
+
+      setPasswordError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Não foi possível alterar sua senha.',
+      );
+    } finally {
+      setChangingPassword(false);
+    }
+  }
+
   async function handleExportData() {
     clearMessages();
     setExporting(true);
@@ -851,7 +980,7 @@ function SettingsPage() {
           <div className="settings-info-note">
             <KeyRound size={16} />
             <p>
-              Nome, e-mail e senha são gerenciados pelo cadastro da conta. Esta versão mantém esses campos somente para consulta.
+              Nome e e-mail permanecem disponíveis para consulta. Sua senha pode ser alterada com segurança na seção Segurança.
             </p>
           </div>
         </section>
@@ -1376,15 +1505,136 @@ function SettingsPage() {
               </span>
 
               <h2>
-                Sessão atual
+                Segurança da conta
               </h2>
 
               <p>
-                Controle o acesso desta sessão ao FinPilot.
+                Atualize sua senha e controle o acesso desta sessão ao FinPilot.
               </p>
             </div>
 
             <ShieldCheck size={21} />
+          </div>
+
+          <form
+            className="settings-workspace-form"
+            onSubmit={
+              handlePasswordChange
+            }
+          >
+            <label className="settings-field">
+              <span>
+                Senha atual
+              </span>
+
+              <input
+                type="password"
+                value={
+                  currentPassword
+                }
+                onChange={(
+                  event: ChangeEvent<HTMLInputElement>,
+                ) =>
+                  setCurrentPassword(
+                    event.target.value,
+                  )
+                }
+                placeholder="Digite sua senha atual"
+                autoComplete="current-password"
+                required
+              />
+            </label>
+
+            <label className="settings-field">
+              <span>
+                Nova senha
+              </span>
+
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(
+                  event: ChangeEvent<HTMLInputElement>,
+                ) =>
+                  setNewPassword(
+                    event.target.value,
+                  )
+                }
+                placeholder="Mínimo de 8 caracteres"
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+
+            <label className="settings-field">
+              <span>
+                Confirmar nova senha
+              </span>
+
+              <input
+                type="password"
+                value={
+                  confirmNewPassword
+                }
+                onChange={(
+                  event: ChangeEvent<HTMLInputElement>,
+                ) =>
+                  setConfirmNewPassword(
+                    event.target.value,
+                  )
+                }
+                placeholder="Digite a nova senha novamente"
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </label>
+
+            <button
+              type="submit"
+              className="settings-primary-button"
+              disabled={
+                changingPassword
+              }
+            >
+              <KeyRound size={16} />
+              {changingPassword
+                ? 'Alterando senha...'
+                : 'Alterar senha'}
+            </button>
+          </form>
+
+          {(passwordSuccess ||
+            passwordError) && (
+            <div
+              className={`settings-feedback ${
+                passwordError
+                  ? 'error'
+                  : 'success'
+              }`}
+              role="status"
+            >
+              {passwordError ? (
+                <X size={18} />
+              ) : (
+                <CheckCircle2
+                  size={18}
+                />
+              )}
+
+              <span>
+                {passwordError ||
+                  passwordSuccess}
+              </span>
+            </div>
+          )}
+
+          <div className="settings-info-note">
+            <ShieldCheck size={16} />
+            <p>
+              Ao alterar sua senha, códigos e autorizações de recuperação pendentes deixam de funcionar.
+            </p>
           </div>
 
           <div className="settings-session-card">

@@ -91,6 +91,11 @@ interface ResetPasswordResponse {
   message: string;
 }
 
+interface ChangePasswordResponse {
+  status: 'success';
+  message: string;
+}
+
 interface UserResponse {
   status: 'success';
   user: User;
@@ -528,6 +533,25 @@ export async function getCurrentUser(
     );
 
   return data.user;
+}
+
+export async function changeUserPassword(
+  token: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await request<ChangePasswordResponse>(
+    '/users/me/password',
+    {
+      method: 'PATCH',
+      token,
+
+      body: {
+        currentPassword,
+        newPassword,
+      },
+    },
+  );
 }
 
 export async function getWorkspaces(

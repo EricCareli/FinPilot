@@ -18,18 +18,19 @@ export interface ChangeUserPasswordInput {
 export async function getUserProfile(
   userId: string,
 ) {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  });
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
   if (!user) {
     throw new AppError(
@@ -54,11 +55,12 @@ export async function updateUserProfile(
     );
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: input.userId,
-    },
-  });
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id: input.userId,
+      },
+    });
 
   if (!user) {
     throw new AppError(
@@ -174,21 +176,16 @@ export async function changeUserPassword(
     );
   }
 
-  if (
-    input.currentPassword ===
-    input.newPassword
-  ) {
-    throw new AppError(
-      'New password must be different from current password',
-      400,
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: input.userId,
-    },
-  });
+  const user =
+    await prisma.user.findUnique({
+      where: {
+        id: input.userId,
+      },
+      select: {
+        id: true,
+        passwordHash: true,
+      },
+    });
 
   if (!user) {
     throw new AppError(
@@ -210,20 +207,43 @@ export async function changeUserPassword(
     );
   }
 
+  const newPasswordMatchesCurrent =
+    await bcrypt.compare(
+      input.newPassword,
+      user.passwordHash,
+    );
+
+  if (newPasswordMatchesCurrent) {
+    throw new AppError(
+      'New password must be different from current password',
+      400,
+    );
+  }
+
   const passwordHash =
     await bcrypt.hash(
       input.newPassword,
       12,
     );
 
-  await prisma.user.update({
-    where: {
-      id: user.id,
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          passwordHash,
+        },
+      });
+
+      await tx.passwordResetCode.deleteMany({
+        where: {
+          userId: user.id,
+        },
+      });
     },
-    data: {
-      passwordHash,
-    },
-  });
+  );
 
   return {
     message:
