@@ -40,6 +40,17 @@ if (!JWT_SECRET) {
 const jwtSecret: string =
   JWT_SECRET;
 
+const corsOrigins =
+  (
+    process.env.CORS_ORIGIN ??
+    'http://localhost:5173'
+  )
+    .split(',')
+    .map((origin) =>
+      origin.trim(),
+    )
+    .filter(Boolean);
+
 async function buildServer() {
   const app = Fastify({
     logger: true,
@@ -132,16 +143,40 @@ async function buildServer() {
         }
       }
 
-      return reply.status(500).send({
-        status: 'error',
-        message:
-          'Internal server error',
-      });
+      return reply
+        .status(500)
+        .send({
+          status: 'error',
+          message:
+            'Internal server error',
+        });
     },
   );
 
   await app.register(cors, {
-    origin: true,
+    origin: (
+      origin,
+      callback,
+    ) => {
+      if (
+        !origin ||
+        corsOrigins.includes(
+          origin,
+        )
+      ) {
+        callback(
+          null,
+          true,
+        );
+
+        return;
+      }
+
+      callback(
+        null,
+        false,
+      );
+    },
 
     methods: [
       'GET',
@@ -179,6 +214,7 @@ async function buildServer() {
   await budgetsRoutes(app);
   await goalsRoutes(app);
   await creditCardsRoutes(app);
+
   await recurringTransactionsRoutes(
     app,
   );
@@ -351,7 +387,9 @@ async function start() {
     await buildServer();
 
   const recurringProcessor =
-    setupRecurringProcessor(app);
+    setupRecurringProcessor(
+      app,
+    );
 
   let shuttingDown = false;
 
@@ -394,14 +432,18 @@ async function start() {
   process.once(
     'SIGINT',
     () => {
-      void shutdown('SIGINT');
+      void shutdown(
+        'SIGINT',
+      );
     },
   );
 
   process.once(
     'SIGTERM',
     () => {
-      void shutdown('SIGTERM');
+      void shutdown(
+        'SIGTERM',
+      );
     },
   );
 
