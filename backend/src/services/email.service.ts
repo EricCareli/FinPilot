@@ -24,6 +24,12 @@ interface SendVerificationCodeInput {
   code: string;
 }
 
+interface SendPasswordResetCodeInput {
+  email: string;
+  name: string;
+  code: string;
+}
+
 export async function sendVerificationCode({
   email,
   name,
@@ -109,6 +115,104 @@ Se você não criou uma conta no FinPilot, ignore este e-mail.
   if (error) {
     throw new Error(
       `Failed to send verification email: ${error.message}`,
+    );
+  }
+
+  return data;
+}
+
+export async function sendPasswordResetCode({
+  email,
+  name,
+  code,
+}: SendPasswordResetCodeInput) {
+  const { data, error } =
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject:
+        'Redefina sua senha do FinPilot',
+      text: `
+Olá, ${name}!
+
+Recebemos uma solicitação para redefinir a senha da sua conta FinPilot.
+
+Seu código de recuperação é:
+
+${code}
+
+Este código expira em alguns minutos.
+
+Se você não solicitou a redefinição da sua senha, ignore este e-mail.
+      `.trim(),
+      html: `
+        <div
+          style="
+            font-family: Arial, sans-serif;
+            max-width: 520px;
+            margin: 0 auto;
+          "
+        >
+          <h1
+            style="
+              color: #135846;
+            "
+          >
+            FinPilot
+          </h1>
+
+          <p>
+            Olá,
+            <strong>${name}</strong>!
+          </p>
+
+          <p>
+            Recebemos uma solicitação para redefinir
+            a senha da sua conta.
+          </p>
+
+          <p>
+            Use o código abaixo para continuar:
+          </p>
+
+          <div
+            style="
+              font-size: 32px;
+              font-weight: bold;
+              letter-spacing: 8px;
+              padding: 20px;
+              text-align: center;
+              background: #f3f7f5;
+              border-radius: 10px;
+              color: #135846;
+            "
+          >
+            ${code}
+          </div>
+
+          <p
+            style="
+              margin-top: 24px;
+            "
+          >
+            Este código expira em alguns minutos.
+          </p>
+
+          <p
+            style="
+              color: #777;
+            "
+          >
+            Se você não solicitou a redefinição da
+            sua senha, ignore este e-mail.
+          </p>
+        </div>
+      `,
+    });
+
+  if (error) {
+    throw new Error(
+      `Failed to send password reset email: ${error.message}`,
     );
   }
 

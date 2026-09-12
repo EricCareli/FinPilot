@@ -12,6 +12,12 @@ import {
   verifyEmailCode,
 } from '../services/email-verification.service.js';
 
+import {
+  requestPasswordReset,
+  resetPassword,
+  verifyPasswordResetCode,
+} from '../services/password-reset.service.js';
+
 export async function authRoutes(
   app: FastifyInstance,
 ): Promise<void> {
@@ -234,6 +240,197 @@ export async function authRoutes(
           status: 'success',
           message:
             'If the account exists and is not verified, a new verification code was sent',
+        });
+    },
+  );
+
+  app.post(
+    '/auth/forgot-password',
+    async (
+      request,
+      reply,
+    ) => {
+      const {
+        email,
+      } =
+        request.body as {
+          email?: string;
+        };
+
+      if (!email) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Email is required',
+          });
+      }
+
+      const normalizedEmail =
+        email
+          .trim()
+          .toLowerCase();
+
+      if (
+        !normalizedEmail.includes(
+          '@',
+        )
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Invalid email',
+          });
+      }
+
+      await requestPasswordReset({
+        email:
+          normalizedEmail,
+      });
+
+      return reply
+        .status(200)
+        .send({
+          status: 'success',
+          message:
+            'If an account exists for this email, a password reset code was sent',
+        });
+    },
+  );
+
+  app.post(
+    '/auth/verify-password-reset',
+    async (
+      request,
+      reply,
+    ) => {
+      const {
+        email,
+        code,
+      } =
+        request.body as {
+          email?: string;
+          code?: string;
+        };
+
+      if (
+        !email ||
+        !code
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Email and password reset code are required',
+          });
+      }
+
+      const normalizedEmail =
+        email
+          .trim()
+          .toLowerCase();
+
+      const normalizedCode =
+        code.trim();
+
+      if (
+        !/^\d{6}$/.test(
+          normalizedCode,
+        )
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Password reset code must contain exactly 6 digits',
+          });
+      }
+
+      const result =
+        await verifyPasswordResetCode({
+          email:
+            normalizedEmail,
+          code:
+            normalizedCode,
+        });
+
+      return reply
+        .status(200)
+        .send({
+          status: 'success',
+          message:
+            'Password reset code verified successfully',
+          resetToken:
+            result.resetToken,
+          expiresAt:
+            result.expiresAt,
+        });
+    },
+  );
+
+  app.post(
+    '/auth/reset-password',
+    async (
+      request,
+      reply,
+    ) => {
+      const {
+        email,
+        resetToken,
+        newPassword,
+      } =
+        request.body as {
+          email?: string;
+          resetToken?: string;
+          newPassword?: string;
+        };
+
+      if (
+        !email ||
+        !resetToken ||
+        !newPassword
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Email, reset token and new password are required',
+          });
+      }
+
+      if (
+        newPassword.length < 8
+      ) {
+        return reply
+          .status(400)
+          .send({
+            status: 'error',
+            message:
+              'Password must contain at least 8 characters',
+          });
+      }
+
+      await resetPassword({
+        email:
+          email
+            .trim()
+            .toLowerCase(),
+        resetToken,
+        newPassword,
+      });
+
+      return reply
+        .status(200)
+        .send({
+          status: 'success',
+          message:
+            'Password reset successfully',
         });
     },
   );

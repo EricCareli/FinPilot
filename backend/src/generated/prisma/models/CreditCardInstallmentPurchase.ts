@@ -610,10 +610,6 @@ export type EnumInstallmentPurchaseStatusFieldUpdateOperationsInput = {
   set?: $Enums.InstallmentPurchaseStatus
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type CreditCardInstallmentPurchaseCreateNestedManyWithoutCategoryInput = {
   create?: Prisma.XOR<Prisma.CreditCardInstallmentPurchaseCreateWithoutCategoryInput, Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutCategoryInput> | Prisma.CreditCardInstallmentPurchaseCreateWithoutCategoryInput[] | Prisma.CreditCardInstallmentPurchaseUncheckedCreateWithoutCategoryInput[]
   connectOrCreate?: Prisma.CreditCardInstallmentPurchaseCreateOrConnectWithoutCategoryInput | Prisma.CreditCardInstallmentPurchaseCreateOrConnectWithoutCategoryInput[]

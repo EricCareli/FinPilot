@@ -74,6 +74,23 @@ interface ResendVerificationResponse {
   message: string;
 }
 
+interface PasswordResetRequestResponse {
+  status: 'success';
+  message: string;
+}
+
+interface VerifyPasswordResetResponse {
+  status: 'success';
+  message: string;
+  resetToken: string;
+  expiresAt: string;
+}
+
+interface ResetPasswordResponse {
+  status: 'success';
+  message: string;
+}
+
 interface UserResponse {
   status: 'success';
   user: User;
@@ -415,6 +432,68 @@ export async function resendVerificationEmail(
 
       body: {
         email,
+      },
+    },
+  );
+}
+
+export async function requestPasswordReset(
+  email: string,
+): Promise<void> {
+  await request<PasswordResetRequestResponse>(
+    '/auth/forgot-password',
+    {
+      method: 'POST',
+
+      body: {
+        email,
+      },
+    },
+  );
+}
+
+export async function verifyPasswordResetCode(
+  email: string,
+  code: string,
+): Promise<{
+  resetToken: string;
+  expiresAt: string;
+}> {
+  const data =
+    await request<VerifyPasswordResetResponse>(
+      '/auth/verify-password-reset',
+      {
+        method: 'POST',
+
+        body: {
+          email,
+          code,
+        },
+      },
+    );
+
+  return {
+    resetToken:
+      data.resetToken,
+    expiresAt:
+      data.expiresAt,
+  };
+}
+
+export async function resetPassword(
+  email: string,
+  resetToken: string,
+  newPassword: string,
+): Promise<void> {
+  await request<ResetPasswordResponse>(
+    '/auth/reset-password',
+    {
+      method: 'POST',
+
+      body: {
+        email,
+        resetToken,
+        newPassword,
       },
     },
   );

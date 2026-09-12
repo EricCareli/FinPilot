@@ -21,8 +21,11 @@ import {
   getWorkspaces,
   login,
   register,
+  requestPasswordReset,
   resendVerificationEmail,
+  resetPassword,
   verifyEmail,
+  verifyPasswordResetCode,
 } from './lib/api';
 
 import type {
@@ -48,6 +51,11 @@ const TOKEN_KEY =
 
 const WORKSPACE_KEY =
   'finpilot_workspace_id';
+
+type PasswordResetStep =
+  | 'request'
+  | 'code'
+  | 'password';
 
 function App() {
   const navigate =
@@ -91,6 +99,54 @@ function App() {
   const [
     verificationMessage,
     setVerificationMessage,
+  ] = useState('');
+
+  const [
+    isResettingPassword,
+    setIsResettingPassword,
+  ] = useState(false);
+
+  const [
+    passwordResetStep,
+    setPasswordResetStep,
+  ] =
+    useState<PasswordResetStep>(
+      'request',
+    );
+
+  const [
+    passwordResetCode,
+    setPasswordResetCode,
+  ] = useState('');
+
+  const [
+    passwordResetToken,
+    setPasswordResetToken,
+  ] = useState('');
+
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState('');
+
+  const [
+    confirmNewPassword,
+    setConfirmNewPassword,
+  ] = useState('');
+
+  const [
+    resettingPassword,
+    setResettingPassword,
+  ] = useState(false);
+
+  const [
+    passwordResetCooldown,
+    setPasswordResetCooldown,
+  ] = useState(0);
+
+  const [
+    passwordResetMessage,
+    setPasswordResetMessage,
   ] = useState('');
 
   const [
@@ -180,6 +236,17 @@ function App() {
       setResendingCode(false);
       setResendCooldown(0);
       setVerificationMessage('');
+      setIsResettingPassword(false);
+      setPasswordResetStep(
+        'request',
+      );
+      setPasswordResetCode('');
+      setPasswordResetToken('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setResettingPassword(false);
+      setPasswordResetCooldown(0);
+      setPasswordResetMessage('');
       setAppError('');
       setLoadingApp(false);
     }, []);
@@ -232,6 +299,35 @@ function App() {
       );
     };
   }, [resendCooldown]);
+
+  useEffect(() => {
+    if (
+      passwordResetCooldown <=
+      0
+    ) {
+      return;
+    }
+
+    const timeout =
+      window.setTimeout(
+        () => {
+          setPasswordResetCooldown(
+            (current) =>
+              Math.max(
+                current - 1,
+                0,
+              ),
+          );
+        },
+        1000,
+      );
+
+    return () => {
+      window.clearTimeout(
+        timeout,
+      );
+    };
+  }, [passwordResetCooldown]);
 
   useEffect(() => {
     if (!token) {
@@ -335,6 +431,7 @@ function App() {
     event.preventDefault();
 
     setLoginError('');
+    setPasswordResetMessage('');
 
     const normalizedEmail =
       email.trim().toLowerCase();
@@ -609,6 +706,298 @@ function App() {
     }
   }
 
+  function openPasswordReset() {
+    setIsRegistering(false);
+    setIsVerifyingEmail(false);
+    setIsResettingPassword(true);
+    setPasswordResetStep(
+      'request',
+    );
+    setPasswordResetCode('');
+    setPasswordResetToken('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setPasswordResetCooldown(0);
+    setPasswordResetMessage('');
+    setLoginError('');
+    setPassword('');
+    setConfirmPassword('');
+  }
+
+  function closePasswordReset() {
+    setIsResettingPassword(false);
+    setPasswordResetStep(
+      'request',
+    );
+    setPasswordResetCode('');
+    setPasswordResetToken('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setPasswordResetCooldown(0);
+    setLoginError('');
+  }
+
+  async function handlePasswordResetRequest(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setLoginError('');
+    setPasswordResetMessage('');
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    if (
+      !normalizedEmail.includes(
+        '@',
+      )
+    ) {
+      setLoginError(
+        'Informe um e-mail válido.',
+      );
+
+      return;
+    }
+
+    setResettingPassword(true);
+
+    try {
+      await requestPasswordReset(
+        normalizedEmail,
+      );
+
+      setEmail(
+        normalizedEmail,
+      );
+
+      setPasswordResetCode('');
+      setPasswordResetCooldown(60);
+      setPasswordResetMessage(
+        'Se existir uma conta com esse e-mail, enviamos um código de 6 dígitos.',
+      );
+      setPasswordResetStep(
+        'code',
+      );
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível solicitar a recuperação da senha.',
+      );
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  async function handlePasswordResetCodeSubmit(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setLoginError('');
+    setPasswordResetMessage('');
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    const normalizedCode =
+      passwordResetCode.trim();
+
+    if (
+      !/^\d{6}$/.test(
+        normalizedCode,
+      )
+    ) {
+      setLoginError(
+        'Digite o código de 6 dígitos enviado para o seu e-mail.',
+      );
+
+      return;
+    }
+
+    setResettingPassword(true);
+
+    try {
+      const result =
+        await verifyPasswordResetCode(
+          normalizedEmail,
+          normalizedCode,
+        );
+
+      setPasswordResetToken(
+        result.resetToken,
+      );
+      setPasswordResetCode('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPasswordResetMessage('');
+      setPasswordResetStep(
+        'password',
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError
+      ) {
+        if (
+          error.message ===
+          'Password reset code expired'
+        ) {
+          setLoginError(
+            'Este código expirou. Solicite um novo código.',
+          );
+        } else if (
+          error.message ===
+          'Too many password reset attempts'
+        ) {
+          setLoginError(
+            'Muitas tentativas incorretas. Solicite um novo código.',
+          );
+        } else if (
+          error.message ===
+          'Invalid password reset code'
+        ) {
+          setLoginError(
+            'Código inválido. Confira os 6 dígitos e tente novamente.',
+          );
+        } else {
+          setLoginError(
+            error.message,
+          );
+        }
+      } else {
+        setLoginError(
+          'Não foi possível validar o código.',
+        );
+      }
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  async function handlePasswordResetResend() {
+    if (
+      resettingPassword ||
+      passwordResetCooldown >
+        0
+    ) {
+      return;
+    }
+
+    setLoginError('');
+    setPasswordResetMessage('');
+    setResettingPassword(true);
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    try {
+      await requestPasswordReset(
+        normalizedEmail,
+      );
+
+      setPasswordResetCode('');
+      setPasswordResetCooldown(60);
+      setPasswordResetMessage(
+        'Se existir uma conta com esse e-mail, enviamos um novo código.',
+      );
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível reenviar o código.',
+      );
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
+  async function handleNewPasswordSubmit(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setLoginError('');
+    setPasswordResetMessage('');
+
+    if (
+      newPassword.length < 8
+    ) {
+      setLoginError(
+        'A nova senha deve ter pelo menos 8 caracteres.',
+      );
+
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmNewPassword
+    ) {
+      setLoginError(
+        'As senhas não coincidem.',
+      );
+
+      return;
+    }
+
+    if (!passwordResetToken) {
+      setLoginError(
+        'A sessão de recuperação expirou. Solicite um novo código.',
+      );
+
+      return;
+    }
+
+    setResettingPassword(true);
+
+    try {
+      await resetPassword(
+        email
+          .trim()
+          .toLowerCase(),
+        passwordResetToken,
+        newPassword,
+      );
+
+      setIsResettingPassword(false);
+      setPasswordResetStep(
+        'request',
+      );
+      setPasswordResetCode('');
+      setPasswordResetToken('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPasswordResetCooldown(0);
+      setPassword('');
+      setConfirmPassword('');
+      setPasswordResetMessage(
+        'Senha redefinida com sucesso. Entre com sua nova senha.',
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.message ===
+          'Password reset token expired'
+      ) {
+        setLoginError(
+          'A sessão de recuperação expirou. Solicite um novo código.',
+        );
+      } else {
+        setLoginError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível redefinir sua senha.',
+        );
+      }
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
   function switchAuthMode() {
     setIsRegistering(
       (current) => !current,
@@ -618,6 +1007,16 @@ function App() {
     setResendingCode(false);
     setResendCooldown(0);
     setVerificationMessage('');
+    setIsResettingPassword(false);
+    setPasswordResetStep(
+      'request',
+    );
+    setPasswordResetCode('');
+    setPasswordResetToken('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setPasswordResetCooldown(0);
+    setPasswordResetMessage('');
     setLoginError('');
     setPassword('');
     setConfirmPassword('');
@@ -719,7 +1118,353 @@ function App() {
 
         <section className="login-panel">
           <div className="login-card">
-            {isVerifyingEmail ? (
+            {isResettingPassword ? (
+              <>
+                <p className="mobile-brand">
+                  FinPilot
+                </p>
+
+                {passwordResetStep ===
+                  'request' && (
+                  <>
+                    <div className="login-heading">
+                      <span className="login-badge">
+                        RECUPERAÇÃO
+                      </span>
+
+                      <h2>
+                        Esqueceu sua senha?
+                      </h2>
+
+                      <p>
+                        Informe o e-mail da sua conta para receber um código de recuperação.
+                      </p>
+                    </div>
+
+                    <form
+                      className="login-form"
+                      onSubmit={
+                        handlePasswordResetRequest
+                      }
+                    >
+                      <label>
+                        E-mail
+
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(
+                            event,
+                          ) =>
+                            setEmail(
+                              event.target
+                                .value,
+                            )
+                          }
+                          placeholder="seu@email.com"
+                          autoComplete="email"
+                          required
+                          autoFocus
+                        />
+                      </label>
+
+                      {loginError && (
+                        <div
+                          className="error-message"
+                          role="alert"
+                        >
+                          {loginError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        className="primary-button"
+                        disabled={
+                          resettingPassword
+                        }
+                      >
+                        {resettingPassword
+                          ? 'Enviando...'
+                          : 'Enviar código'}
+                      </button>
+                    </form>
+
+                    <div className="auth-switch">
+                      <span>
+                        Lembrou sua senha?
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={
+                          closePasswordReset
+                        }
+                        disabled={
+                          resettingPassword
+                        }
+                      >
+                        Voltar para o login
+                      </button>
+                    </div>
+
+                    <p className="security-text">
+                      Por segurança, não informamos se um e-mail possui uma conta cadastrada.
+                    </p>
+                  </>
+                )}
+
+                {passwordResetStep ===
+                  'code' && (
+                  <>
+                    <div className="login-heading">
+                      <span className="login-badge">
+                        RECUPERAÇÃO
+                      </span>
+
+                      <h2>
+                        Digite o código
+                      </h2>
+
+                      <p>
+                        Informe o código de 6 dígitos enviado para <strong>{email.trim().toLowerCase()}</strong>.
+                      </p>
+                    </div>
+
+                    <form
+                      className="login-form"
+                      onSubmit={
+                        handlePasswordResetCodeSubmit
+                      }
+                    >
+                      <label>
+                        Código de recuperação
+
+                        <input
+                          type="text"
+                          value={
+                            passwordResetCode
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            setPasswordResetCode(
+                              event.target.value
+                                .replace(
+                                  /\D/g,
+                                  '',
+                                )
+                                .slice(
+                                  0,
+                                  6,
+                                ),
+                            )
+                          }
+                          placeholder="000000"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          pattern="[0-9]{6}"
+                          required
+                          autoFocus
+                        />
+                      </label>
+
+                      {loginError && (
+                        <div
+                          className="error-message"
+                          role="alert"
+                        >
+                          {loginError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        className="primary-button"
+                        disabled={
+                          resettingPassword ||
+                          passwordResetCode.length !==
+                            6
+                        }
+                      >
+                        {resettingPassword
+                          ? 'Validando...'
+                          : 'Validar código'}
+                      </button>
+                    </form>
+
+                    {passwordResetMessage && (
+                      <p
+                        className="security-text"
+                        role="status"
+                      >
+                        {passwordResetMessage}
+                      </p>
+                    )}
+
+                    <div className="auth-switch">
+                      <span>
+                        Não recebeu o código?
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void handlePasswordResetResend()
+                        }
+                        disabled={
+                          resettingPassword ||
+                          passwordResetCooldown >
+                            0
+                        }
+                      >
+                        {resettingPassword
+                          ? 'Enviando...'
+                          : passwordResetCooldown >
+                              0
+                            ? `Reenviar em ${passwordResetCooldown}s`
+                            : 'Reenviar código'}
+                      </button>
+                    </div>
+
+                    <div className="auth-switch">
+                      <span>
+                        E-mail incorreto?
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPasswordResetStep(
+                            'request',
+                          );
+                          setPasswordResetCode(
+                            '',
+                          );
+                          setPasswordResetCooldown(
+                            0,
+                          );
+                          setPasswordResetMessage(
+                            '',
+                          );
+                          setLoginError(
+                            '',
+                          );
+                        }}
+                        disabled={
+                          resettingPassword
+                        }
+                      >
+                        Alterar e-mail
+                      </button>
+                    </div>
+
+                    <p className="security-text">
+                      O código expira em 10 minutos.
+                    </p>
+                  </>
+                )}
+
+                {passwordResetStep ===
+                  'password' && (
+                  <>
+                    <div className="login-heading">
+                      <span className="login-badge">
+                        NOVA SENHA
+                      </span>
+
+                      <h2>
+                        Crie uma nova senha
+                      </h2>
+
+                      <p>
+                        Escolha uma nova senha para sua conta FinPilot.
+                      </p>
+                    </div>
+
+                    <form
+                      className="login-form"
+                      onSubmit={
+                        handleNewPasswordSubmit
+                      }
+                    >
+                      <label>
+                        Nova senha
+
+                        <input
+                          type="password"
+                          value={
+                            newPassword
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            setNewPassword(
+                              event.target
+                                .value,
+                            )
+                          }
+                          placeholder="Mínimo de 8 caracteres"
+                          autoComplete="new-password"
+                          minLength={8}
+                          required
+                          autoFocus
+                        />
+                      </label>
+
+                      <label>
+                        Confirmar nova senha
+
+                        <input
+                          type="password"
+                          value={
+                            confirmNewPassword
+                          }
+                          onChange={(
+                            event,
+                          ) =>
+                            setConfirmNewPassword(
+                              event.target
+                                .value,
+                            )
+                          }
+                          placeholder="Digite a senha novamente"
+                          autoComplete="new-password"
+                          minLength={8}
+                          required
+                        />
+                      </label>
+
+                      {loginError && (
+                        <div
+                          className="error-message"
+                          role="alert"
+                        >
+                          {loginError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        className="primary-button"
+                        disabled={
+                          resettingPassword
+                        }
+                      >
+                        {resettingPassword
+                          ? 'Salvando...'
+                          : 'Salvar nova senha'}
+                      </button>
+                    </form>
+
+                    <p className="security-text">
+                      A autorização para redefinir a senha expira em 10 minutos e só pode ser usada uma vez.
+                    </p>
+                  </>
+                )}
+              </>
+            ) : isVerifyingEmail ? (
               <>
                 <p className="mobile-brand">
                   FinPilot
@@ -996,6 +1741,35 @@ function App() {
                     : 'Entrar no FinPilot'}
               </button>
             </form>
+
+            {passwordResetMessage && (
+              <p
+                className="security-text"
+                role="status"
+              >
+                {passwordResetMessage}
+              </p>
+            )}
+
+            {!isRegistering && (
+              <div className="auth-switch">
+                <span>
+                  Esqueceu sua senha?
+                </span>
+
+                <button
+                  type="button"
+                  onClick={
+                    openPasswordReset
+                  }
+                  disabled={
+                    loggingIn
+                  }
+                >
+                  Recuperar senha
+                </button>
+              </div>
+            )}
 
             <div className="auth-switch">
               <span>

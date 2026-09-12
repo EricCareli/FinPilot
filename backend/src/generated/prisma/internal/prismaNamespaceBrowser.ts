@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   EmailVerificationCode: 'EmailVerificationCode',
+  PasswordResetCode: 'PasswordResetCode',
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   Account: 'Account',
@@ -108,6 +109,22 @@ export const EmailVerificationCodeScalarFieldEnum = {
 } as const
 
 export type EmailVerificationCodeScalarFieldEnum = (typeof EmailVerificationCodeScalarFieldEnum)[keyof typeof EmailVerificationCodeScalarFieldEnum]
+
+
+export const PasswordResetCodeScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  codeExpiresAt: 'codeExpiresAt',
+  resetTokenHash: 'resetTokenHash',
+  resetTokenExpiresAt: 'resetTokenExpiresAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PasswordResetCodeScalarFieldEnum = (typeof PasswordResetCodeScalarFieldEnum)[keyof typeof PasswordResetCodeScalarFieldEnum]
 
 
 export const WorkspaceScalarFieldEnum = {

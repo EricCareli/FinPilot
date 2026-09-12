@@ -52,6 +52,11 @@ export type User = Prisma.UserModel
  */
 export type EmailVerificationCode = Prisma.EmailVerificationCodeModel
 /**
+ * Model PasswordResetCode
+ * 
+ */
+export type PasswordResetCode = Prisma.PasswordResetCodeModel
+/**
  * Model Workspace
  * 
  */
