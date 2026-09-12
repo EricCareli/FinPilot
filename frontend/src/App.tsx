@@ -34,7 +34,7 @@ import CreditCardsPage from './pages/CreditCardsPage';
 import DashboardPage from './pages/DashboardPage';
 import GoalsPage from './pages/GoalsPage';
 import ReportsPage from './pages/ReportsPage';
-import PlaceholderPage from './pages/PlaceholderPage';
+import SettingsPage from './pages/SettingsPage';
 import TransactionsPage from './pages/TransactionsPage';
 
 import './App.css';
@@ -643,10 +643,7 @@ function App() {
         <Route
           path="/settings"
           element={
-            <PlaceholderPage
-              title="Configurações"
-              description="Personalize sua experiência no FinPilot."
-            />
+            <SettingsPage />
           }
         />
       </Route>

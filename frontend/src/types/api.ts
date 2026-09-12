@@ -61,6 +61,32 @@ export interface Workspace {
   updatedAt: string;
 }
 
+export interface WorkspaceMemberUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspaceId: string;
+  userId: string;
+  role: WorkspaceRole;
+  createdAt: string;
+  updatedAt: string;
+  user: WorkspaceMemberUser;
+}
+
+export interface UpdateWorkspaceInput {
+  name?: string;
+  type?: WorkspaceType;
+}
+
+export interface AddWorkspaceMemberInput {
+  email: string;
+  role: WorkspaceRole;
+}
+
 export type MoneyValue =
   | string
   | number;

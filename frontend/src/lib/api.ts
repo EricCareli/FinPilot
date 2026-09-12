@@ -1,6 +1,7 @@
 import type {
   Account,
   AccountBalance,
+  AddWorkspaceMemberInput,
   Budget,
   BudgetProgress,
   Category,
@@ -27,8 +28,11 @@ import type {
   UpdateGoalAmountInput,
   UpdateGoalInput,
   UpdateTransactionInput,
+  UpdateWorkspaceInput,
   User,
   Workspace,
+  WorkspaceMember,
+  WorkspaceRole,
 } from '../types/api';
 
 const API_URL =
@@ -61,6 +65,36 @@ interface UserResponse {
 interface WorkspacesResponse {
   status: 'success';
   workspaces: Workspace[];
+}
+
+interface WorkspaceMembersResponse {
+  status: 'success';
+  members: WorkspaceMember[];
+}
+
+interface WorkspaceMemberResponse {
+  status: 'success';
+  member: WorkspaceMember;
+}
+
+interface WorkspaceMutationResponse {
+  status: 'success';
+  workspace: {
+    id: string;
+    name: string;
+    type: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+interface RemovedWorkspaceMemberResponse {
+  status: 'success';
+  removedMember: {
+    id: string;
+    userId: string;
+    workspaceId: string;
+  };
 }
 
 interface DashboardResponse {
@@ -355,6 +389,89 @@ export async function getWorkspaces(
     );
 
   return data.workspaces;
+}
+
+export async function updateWorkspace(
+  token: string,
+  workspaceId: string,
+  input: UpdateWorkspaceInput,
+): Promise<void> {
+  await request<WorkspaceMutationResponse>(
+    `/workspaces/${workspaceId}`,
+    {
+      method: 'PATCH',
+      token,
+      body: input,
+    },
+  );
+}
+
+export async function getWorkspaceMembers(
+  token: string,
+  workspaceId: string,
+): Promise<WorkspaceMember[]> {
+  const data =
+    await request<WorkspaceMembersResponse>(
+      `/workspaces/${workspaceId}/members`,
+      {
+        token,
+      },
+    );
+
+  return data.members;
+}
+
+export async function addWorkspaceMember(
+  token: string,
+  workspaceId: string,
+  input: AddWorkspaceMemberInput,
+): Promise<WorkspaceMember> {
+  const data =
+    await request<WorkspaceMemberResponse>(
+      `/workspaces/${workspaceId}/members`,
+      {
+        method: 'POST',
+        token,
+        body: input,
+      },
+    );
+
+  return data.member;
+}
+
+export async function updateWorkspaceMemberRole(
+  token: string,
+  workspaceId: string,
+  memberId: string,
+  role: WorkspaceRole,
+): Promise<WorkspaceMember> {
+  const data =
+    await request<WorkspaceMemberResponse>(
+      `/workspaces/${workspaceId}/members/${memberId}`,
+      {
+        method: 'PATCH',
+        token,
+        body: {
+          role,
+        },
+      },
+    );
+
+  return data.member;
+}
+
+export async function removeWorkspaceMember(
+  token: string,
+  workspaceId: string,
+  memberId: string,
+): Promise<void> {
+  await request<RemovedWorkspaceMemberResponse>(
+    `/workspaces/${workspaceId}/members/${memberId}`,
+    {
+      method: 'DELETE',
+      token,
+    },
+  );
 }
 
 export async function getDashboard(
