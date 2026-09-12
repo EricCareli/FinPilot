@@ -57,6 +57,23 @@ interface LoginResponse {
   token: string;
 }
 
+interface RegisterResponse {
+  status: 'success';
+  user: User;
+  verificationRequired: boolean;
+}
+
+interface VerifyEmailResponse {
+  status: 'success';
+  message: string;
+  user: User;
+}
+
+interface ResendVerificationResponse {
+  status: 'success';
+  message: string;
+}
+
 interface UserResponse {
   status: 'success';
   user: User;
@@ -343,6 +360,63 @@ async function request<
 
   return parseResponse<T>(
     response,
+  );
+}
+
+export async function register(
+  name: string,
+  email: string,
+  password: string,
+): Promise<User> {
+  const data =
+    await request<RegisterResponse>(
+      '/auth/register',
+      {
+        method: 'POST',
+
+        body: {
+          name,
+          email,
+          password,
+        },
+      },
+    );
+
+  return data.user;
+}
+
+export async function verifyEmail(
+  email: string,
+  code: string,
+): Promise<User> {
+  const data =
+    await request<VerifyEmailResponse>(
+      '/auth/verify-email',
+      {
+        method: 'POST',
+
+        body: {
+          email,
+          code,
+        },
+      },
+    );
+
+  return data.user;
+}
+
+export async function resendVerificationEmail(
+  email: string,
+): Promise<void> {
+  await request<ResendVerificationResponse>(
+    '/auth/resend-verification',
+    {
+      method: 'POST',
+
+      body: {
+        email,
+      },
+    },
   );
 }
 

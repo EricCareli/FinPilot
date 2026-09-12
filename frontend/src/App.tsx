@@ -20,6 +20,9 @@ import {
   getCurrentUser,
   getWorkspaces,
   login,
+  register,
+  resendVerificationEmail,
+  verifyEmail,
 } from './lib/api';
 
 import type {
@@ -38,6 +41,7 @@ import SettingsPage from './pages/SettingsPage';
 import TransactionsPage from './pages/TransactionsPage';
 
 import './App.css';
+import './AuthEnhancements.css';
 
 const TOKEN_KEY =
   'finpilot_token';
@@ -60,8 +64,48 @@ function App() {
   );
 
   const [
+    isRegistering,
+    setIsRegistering,
+  ] = useState(false);
+
+  const [
+    isVerifyingEmail,
+    setIsVerifyingEmail,
+  ] = useState(false);
+
+  const [
+    verificationCode,
+    setVerificationCode,
+  ] = useState('');
+
+  const [
+    resendingCode,
+    setResendingCode,
+  ] = useState(false);
+
+  const [
+    resendCooldown,
+    setResendCooldown,
+  ] = useState(0);
+
+  const [
+    verificationMessage,
+    setVerificationMessage,
+  ] = useState('');
+
+  const [
+    name,
+    setName,
+  ] = useState('');
+
+  const [
     email,
     setEmail,
+  ] = useState('');
+
+  const [
+    confirmPassword,
+    setConfirmPassword,
   ] = useState('');
 
   const [
@@ -128,6 +172,14 @@ function App() {
       setWorkspace(null);
       setWorkspaces([]);
       setPassword('');
+      setConfirmPassword('');
+      setName('');
+      setIsRegistering(false);
+      setIsVerifyingEmail(false);
+      setVerificationCode('');
+      setResendingCode(false);
+      setResendCooldown(0);
+      setVerificationMessage('');
       setAppError('');
       setLoadingApp(false);
     }, []);
@@ -154,6 +206,32 @@ function App() {
       },
       [logout],
     );
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return;
+    }
+
+    const timeout =
+      window.setTimeout(
+        () => {
+          setResendCooldown(
+            (current) =>
+              Math.max(
+                current - 1,
+                0,
+              ),
+          );
+        },
+        1000,
+      );
+
+    return () => {
+      window.clearTimeout(
+        timeout,
+      );
+    };
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (!token) {
@@ -257,12 +335,57 @@ function App() {
     event.preventDefault();
 
     setLoginError('');
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    if (isRegistering) {
+      const normalizedName =
+        name.trim();
+
+      if (normalizedName.length < 2) {
+        setLoginError(
+          'Informe um nome com pelo menos 2 caracteres.',
+        );
+        return;
+      }
+
+      if (password.length < 8) {
+        setLoginError(
+          'A senha deve ter pelo menos 8 caracteres.',
+        );
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setLoginError(
+          'As senhas não coincidem.',
+        );
+        return;
+      }
+    }
+
     setLoggingIn(true);
 
     try {
+      if (isRegistering) {
+        await register(
+          name.trim(),
+          normalizedEmail,
+          password,
+        );
+
+        setVerificationCode('');
+        setVerificationMessage('');
+        setResendCooldown(60);
+        setIsVerifyingEmail(true);
+
+        return;
+      }
+
       const response =
         await login(
-          email.trim(),
+          normalizedEmail,
           password,
         );
 
@@ -275,6 +398,8 @@ function App() {
         response.token,
       );
 
+      setConfirmPassword('');
+
       navigate(
         '/dashboard',
         {
@@ -282,14 +407,220 @@ function App() {
         },
       );
     } catch (error) {
-      setLoginError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível entrar.',
-      );
+      if (
+        isRegistering &&
+        error instanceof ApiError &&
+        error.statusCode === 409
+      ) {
+        setLoginError(
+          'Este e-mail já está cadastrado. Entre com sua conta.',
+        );
+      } else if (
+        !isRegistering &&
+        error instanceof ApiError &&
+        error.statusCode === 403 &&
+        error.message ===
+          'Email not verified'
+      ) {
+        setVerificationCode('');
+        setVerificationMessage(
+          'Seu e-mail ainda não foi confirmado. Digite o código enviado ou solicite um novo.',
+        );
+        setResendCooldown(0);
+        setIsVerifyingEmail(true);
+      } else {
+        setLoginError(
+          error instanceof Error
+            ? error.message
+            : isRegistering
+              ? 'Não foi possível criar sua conta.'
+              : 'Não foi possível entrar.',
+        );
+      }
     } finally {
       setLoggingIn(false);
     }
+  }
+
+  async function handleVerificationSubmit(
+    event:
+      FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    setLoginError('');
+    setVerificationMessage('');
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    const normalizedCode =
+      verificationCode.trim();
+
+    if (
+      !/^\d{6}$/.test(
+        normalizedCode,
+      )
+    ) {
+      setLoginError(
+        'Digite o código de 6 dígitos enviado para o seu e-mail.',
+      );
+
+      return;
+    }
+
+    setLoggingIn(true);
+
+    try {
+      await verifyEmail(
+        normalizedEmail,
+        normalizedCode,
+      );
+
+      const response =
+        await login(
+          normalizedEmail,
+          password,
+        );
+
+      localStorage.setItem(
+        TOKEN_KEY,
+        response.token,
+      );
+
+      setToken(
+        response.token,
+      );
+
+      setVerificationCode('');
+      setConfirmPassword('');
+      setIsVerifyingEmail(false);
+
+      navigate(
+        '/dashboard',
+        {
+          replace: true,
+        },
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError
+      ) {
+        if (
+          error.message ===
+          'Verification code expired'
+        ) {
+          setLoginError(
+            'Este código expirou. Solicite um novo código.',
+          );
+        } else if (
+          error.message ===
+          'Too many verification attempts'
+        ) {
+          setLoginError(
+            'Muitas tentativas incorretas. Solicite um novo código.',
+          );
+        } else if (
+          error.message ===
+            'Invalid verification code' ||
+          error.message ===
+            'Verification code not found'
+        ) {
+          setLoginError(
+            'Código inválido. Confira os 6 dígitos e tente novamente.',
+          );
+        } else {
+          setLoginError(
+            error.message,
+          );
+        }
+      } else {
+        setLoginError(
+          'Não foi possível confirmar seu e-mail.',
+        );
+      }
+    } finally {
+      setLoggingIn(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (
+      resendingCode ||
+      resendCooldown > 0
+    ) {
+      return;
+    }
+
+    setLoginError('');
+    setVerificationMessage('');
+    setResendingCode(true);
+
+    const normalizedEmail =
+      email.trim().toLowerCase();
+
+    try {
+      await resendVerificationEmail(
+        normalizedEmail,
+      );
+
+      setVerificationCode('');
+      setResendCooldown(60);
+      setVerificationMessage(
+        'Novo código enviado. Confira seu e-mail.',
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.statusCode === 429
+      ) {
+        const secondsMatch =
+          error.message.match(
+            /(\d+)\s+seconds?/i,
+          );
+
+        const remainingSeconds =
+          secondsMatch
+            ? Number(
+                secondsMatch[1],
+              )
+            : 60;
+
+        setResendCooldown(
+          remainingSeconds,
+        );
+
+        setLoginError(
+          `Aguarde ${remainingSeconds} ${
+            remainingSeconds === 1
+              ? 'segundo'
+              : 'segundos'
+          } para reenviar o código.`,
+        );
+      } else {
+        setLoginError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível reenviar o código.',
+        );
+      }
+    } finally {
+      setResendingCode(false);
+    }
+  }
+
+  function switchAuthMode() {
+    setIsRegistering(
+      (current) => !current,
+    );
+    setIsVerifyingEmail(false);
+    setVerificationCode('');
+    setResendingCode(false);
+    setResendCooldown(0);
+    setVerificationMessage('');
+    setLoginError('');
+    setPassword('');
+    setConfirmPassword('');
   }
 
   function handleWorkspaceChange(
@@ -388,23 +719,148 @@ function App() {
 
         <section className="login-panel">
           <div className="login-card">
+            {isVerifyingEmail ? (
+              <>
+                <p className="mobile-brand">
+                  FinPilot
+                </p>
+
+                <div className="login-heading">
+                  <span className="login-badge">
+                    VERIFICAÇÃO
+                  </span>
+
+                  <h2>
+                    Confirme seu e-mail
+                  </h2>
+
+                  <p>
+                    Enviamos um código de 6 dígitos para <strong>{email.trim().toLowerCase()}</strong>.
+                  </p>
+                </div>
+
+                <form
+                  className="login-form"
+                  onSubmit={
+                    handleVerificationSubmit
+                  }
+                >
+                  <label>
+                    Código de verificação
+
+                    <input
+                      type="text"
+                      value={
+                        verificationCode
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setVerificationCode(
+                          event.target.value
+                            .replace(
+                              /\D/g,
+                              '',
+                            )
+                            .slice(
+                              0,
+                              6,
+                            ),
+                        )
+                      }
+                      placeholder="000000"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      pattern="[0-9]{6}"
+                      required
+                      autoFocus
+                    />
+                  </label>
+
+                  {loginError && (
+                    <div
+                      className="error-message"
+                      role="alert"
+                    >
+                      {loginError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="primary-button"
+                    disabled={
+                      loggingIn ||
+                      verificationCode.length !==
+                        6
+                    }
+                  >
+                    {loggingIn
+                      ? 'Confirmando...'
+                      : 'Confirmar e continuar'}
+                  </button>
+                </form>
+
+                {verificationMessage && (
+                  <p
+                    className="security-text"
+                    role="status"
+                  >
+                    {verificationMessage}
+                  </p>
+                )}
+
+                <div className="auth-switch">
+                  <span>
+                    Não recebeu o código?
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void handleResendVerification()
+                    }
+                    disabled={
+                      resendingCode ||
+                      resendCooldown > 0
+                    }
+                  >
+                    {resendingCode
+                      ? 'Enviando...'
+                      : resendCooldown > 0
+                        ? `Reenviar em ${resendCooldown}s`
+                        : 'Reenviar código'}
+                  </button>
+                </div>
+
+                <p className="security-text">
+                  O código expira em 10 minutos.
+                </p>
+              </>
+            ) : (
+              <>
             <p className="mobile-brand">
               FinPilot
             </p>
 
             <div className="login-heading">
               <span className="login-badge">
-                ACESSO SEGURO
+                {isRegistering
+                  ? 'NOVA CONTA'
+                  : 'ACESSO SEGURO'}
               </span>
 
               <h2>
-                Bem-vindo de volta
+                {isRegistering
+                  ? 'Crie sua conta'
+                  : 'Bem-vindo de volta'}
               </h2>
 
               <p>
-                Entre na sua conta
-                para acessar seu
-                painel financeiro.
+                {isRegistering
+                  ? 'Comece agora e organize sua vida financeira em um só lugar.'
+                  : 'Entre na sua conta para acessar seu painel financeiro.'}
               </p>
             </div>
 
@@ -414,6 +870,29 @@ function App() {
                 handleSubmit
               }
             >
+              {isRegistering && (
+                <label>
+                  Nome
+
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(
+                      event,
+                    ) =>
+                      setName(
+                        event.target
+                          .value,
+                      )
+                    }
+                    placeholder="Seu nome"
+                    autoComplete="name"
+                    minLength={2}
+                    required
+                  />
+                </label>
+              )}
+
               <label>
                 E-mail
 
@@ -448,11 +927,49 @@ function App() {
                         .value,
                     )
                   }
-                  placeholder="Sua senha"
-                  autoComplete="current-password"
+                  placeholder={
+                    isRegistering
+                      ? 'Mínimo de 8 caracteres'
+                      : 'Sua senha'
+                  }
+                  autoComplete={
+                    isRegistering
+                      ? 'new-password'
+                      : 'current-password'
+                  }
+                  minLength={
+                    isRegistering
+                      ? 8
+                      : undefined
+                  }
                   required
                 />
               </label>
+
+              {isRegistering && (
+                <label>
+                  Confirmar senha
+
+                  <input
+                    type="password"
+                    value={
+                      confirmPassword
+                    }
+                    onChange={(
+                      event,
+                    ) =>
+                      setConfirmPassword(
+                        event.target
+                          .value,
+                      )
+                    }
+                    placeholder="Digite a senha novamente"
+                    autoComplete="new-password"
+                    minLength={8}
+                    required
+                  />
+                </label>
+              )}
 
               {loginError && (
                 <div
@@ -471,15 +988,44 @@ function App() {
                 }
               >
                 {loggingIn
-                  ? 'Entrando...'
-                  : 'Entrar no FinPilot'}
+                  ? isRegistering
+                    ? 'Criando conta...'
+                    : 'Entrando...'
+                  : isRegistering
+                    ? 'Criar minha conta'
+                    : 'Entrar no FinPilot'}
               </button>
             </form>
 
+            <div className="auth-switch">
+              <span>
+                {isRegistering
+                  ? 'Já tem uma conta?'
+                  : 'Ainda não tem uma conta?'}
+              </span>
+
+              <button
+                type="button"
+                onClick={
+                  switchAuthMode
+                }
+                disabled={
+                  loggingIn
+                }
+              >
+                {isRegistering
+                  ? 'Entrar'
+                  : 'Criar conta'}
+              </button>
+            </div>
+
             <p className="security-text">
-              Ambiente protegido por
-              autenticação segura.
+              {isRegistering
+                ? 'Ao criar sua conta, um workspace pessoal é preparado para você.'
+                : 'Ambiente protegido por autenticação segura.'}
             </p>
+              </>
+            )}
           </div>
         </section>
       </main>
