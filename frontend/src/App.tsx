@@ -29,6 +29,7 @@ import type {
 
 import AppLayout from './components/AppLayout';
 import AccountsPage from './pages/AccountsPage';
+import BudgetsPage from './pages/BudgetsPage';
 import CreditCardsPage from './pages/CreditCardsPage';
 import DashboardPage from './pages/DashboardPage';
 import PlaceholderPage from './pages/PlaceholderPage';
@@ -619,10 +620,7 @@ function App() {
         <Route
           path="/budgets"
           element={
-            <PlaceholderPage
-              title="Orçamentos"
-              description="Planeje seus gastos e acompanhe seus limites mensais."
-            />
+            <BudgetsPage />
           }
         />
 

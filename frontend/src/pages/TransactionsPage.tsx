@@ -1,5 +1,6 @@
 import {
   ArrowDownRight,
+  ArrowLeftRight,
   ArrowUpRight,
   Ban,
   CircleDollarSign,
@@ -8,6 +9,8 @@ import {
   Plus,
   ReceiptText,
   Search,
+  SlidersHorizontal,
+  Wallet,
   X,
 } from 'lucide-react';
 
@@ -29,7 +32,6 @@ import {
 
 import {
   formatCurrency,
-  formatDate,
   toNumber,
 } from '../lib/format';
 
@@ -151,6 +153,26 @@ function getTypeLabel(
     return 'Transferência';
   }
 
+  if (type === 'ADJUSTMENT') {
+    return 'Ajuste';
+  }
+
+  if (
+    type === 'CREDIT_CARD_PAYMENT'
+  ) {
+    return 'Pagamento de cartão';
+  }
+
+  if (
+    type === 'CREDIT_CARD_PURCHASE'
+  ) {
+    return 'Compra no cartão';
+  }
+
+  if (type === 'REFUND') {
+    return 'Reembolso';
+  }
+
   return type
     .replaceAll('_', ' ')
     .toLowerCase()
@@ -159,6 +181,106 @@ function getTypeLabel(
       (letter) =>
         letter.toUpperCase(),
     );
+}
+
+function getTransactionTone(
+  type: string,
+) {
+  if (type === 'INCOME') {
+    return 'income';
+  }
+
+  if (type === 'EXPENSE') {
+    return 'expense';
+  }
+
+  if (type === 'TRANSFER') {
+    return 'transfer';
+  }
+
+  if (type === 'ADJUSTMENT') {
+    return 'adjustment';
+  }
+
+  return 'neutral';
+}
+
+function parseMoneyInput(
+  value: string,
+) {
+  const sanitized = value
+    .trim()
+    .replace(/R\$/gi, '')
+    .replace(/\s/g, '')
+    .replace(/[^\d,.-]/g, '');
+
+  if (!sanitized) {
+    return Number.NaN;
+  }
+
+  const normalized =
+    sanitized.includes(',')
+      ? sanitized
+          .replace(/\./g, '')
+          .replace(',', '.')
+      : sanitized;
+
+  return Number(normalized);
+}
+
+function getDateKey(
+  transactionDate: string,
+) {
+  return transactionDate.slice(
+    0,
+    10,
+  );
+}
+
+function getDateGroupLabel(
+  dateKey: string,
+) {
+  const today =
+    getTodayInputValue();
+
+  const todayDate =
+    new Date(`${today}T12:00:00`);
+
+  const yesterdayDate =
+    new Date(todayDate);
+
+  yesterdayDate.setDate(
+    yesterdayDate.getDate() - 1,
+  );
+
+  const yesterday =
+    `${yesterdayDate.getFullYear()}-${String(
+      yesterdayDate.getMonth() + 1,
+    ).padStart(2, '0')}-${String(
+      yesterdayDate.getDate(),
+    ).padStart(2, '0')}`;
+
+  if (dateKey === today) {
+    return 'Hoje';
+  }
+
+  if (dateKey === yesterday) {
+    return 'Ontem';
+  }
+
+  const date =
+    new Date(
+      `${dateKey}T12:00:00`,
+    );
+
+  return new Intl.DateTimeFormat(
+    'pt-BR',
+    {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    },
+  ).format(date);
 }
 
 function TransactionsPage() {
@@ -401,69 +523,79 @@ function TransactionsPage() {
           .trim()
           .toLowerCase();
 
-      return transactions.filter(
-        (transaction) => {
-          const matchesSearch =
-            !normalizedSearch ||
-            transaction.description
-              .toLowerCase()
-              .includes(
-                normalizedSearch,
-              ) ||
-            transaction.category
-              ?.name
-              .toLowerCase()
-              .includes(
-                normalizedSearch,
-              ) ||
-            transaction.entries.some(
-              (entry) =>
-                entry.account.name
-                  .toLowerCase()
-                  .includes(
-                    normalizedSearch,
-                  ),
+      return transactions
+        .filter(
+          (transaction) => {
+            const matchesSearch =
+              !normalizedSearch ||
+              transaction.description
+                .toLowerCase()
+                .includes(
+                  normalizedSearch,
+                ) ||
+              transaction.category
+                ?.name
+                .toLowerCase()
+                .includes(
+                  normalizedSearch,
+                ) ||
+              transaction.entries.some(
+                (entry) =>
+                  entry.account.name
+                    .toLowerCase()
+                    .includes(
+                      normalizedSearch,
+                    ),
+              );
+
+            const matchesType =
+              typeFilter ===
+                'ALL' ||
+              (typeFilter ===
+                'OTHER'
+                ? transaction.type !==
+                    'INCOME' &&
+                  transaction.type !==
+                    'EXPENSE'
+                : transaction.type ===
+                  typeFilter);
+
+            const matchesAccount =
+              accountFilter ===
+                'ALL' ||
+              transaction.entries.some(
+                (entry) =>
+                  entry.accountId ===
+                  accountFilter,
+              );
+
+            const matchesCategory =
+              categoryFilter ===
+                'ALL' ||
+              (categoryFilter ===
+                'NONE'
+                ? transaction.categoryId ===
+                  null
+                : transaction.categoryId ===
+                  categoryFilter);
+
+            return (
+              matchesSearch &&
+              matchesType &&
+              matchesAccount &&
+              matchesCategory
             );
-
-          const matchesType =
-            typeFilter ===
-              'ALL' ||
-            (typeFilter ===
-              'OTHER'
-              ? transaction.type !==
-                  'INCOME' &&
-                transaction.type !==
-                  'EXPENSE'
-              : transaction.type ===
-                typeFilter);
-
-          const matchesAccount =
-            accountFilter ===
-              'ALL' ||
-            transaction.entries.some(
-              (entry) =>
-                entry.accountId ===
-                accountFilter,
-            );
-
-          const matchesCategory =
-            categoryFilter ===
-              'ALL' ||
-            (categoryFilter ===
-              'NONE'
-              ? transaction.categoryId ===
-                null
-              : transaction.categoryId ===
-                categoryFilter);
-
-          return (
-            matchesSearch &&
-            matchesType &&
-            matchesAccount &&
-            matchesCategory
-          );
-        },
-      );
+          },
+        )
+        .sort(
+          (first, second) =>
+            new Date(
+              second.transactionDate,
+            ).getTime() -
+            new Date(
+              first.transactionDate,
+            ).getTime(),
+        );
     }, [
       transactions,
       search,
@@ -474,46 +606,141 @@ function TransactionsPage() {
 
   const stats =
     useMemo(() => {
-      return filteredTransactions.reduce(
-        (
-          result,
-          transaction,
-        ) => {
-          result.total += 1;
+      const currencies =
+        new Set<
+          ReturnType<
+            typeof getTransactionCurrency
+          >
+        >();
 
-          if (
-            transaction.status ===
-            'VOIDED'
-          ) {
-            result.voided += 1;
-          }
+      let incomeAmount = 0;
+      let expenseAmount = 0;
+      let incomeCount = 0;
+      let expenseCount = 0;
+      let voided = 0;
 
-          if (
-            transaction.type ===
-            'INCOME'
-          ) {
-            result.income += 1;
-          }
+      for (
+        const transaction of
+          filteredTransactions
+      ) {
+        if (
+          transaction.status ===
+          'VOIDED'
+        ) {
+          voided += 1;
+          continue;
+        }
 
-          if (
-            transaction.type ===
+        if (
+          transaction.type !==
+            'INCOME' &&
+          transaction.type !==
             'EXPENSE'
-          ) {
-            result.expense += 1;
-          }
+        ) {
+          continue;
+        }
 
-          return result;
-        },
-        {
-          total: 0,
-          income: 0,
-          expense: 0,
-          voided: 0,
-        },
+        currencies.add(
+          getTransactionCurrency(
+            transaction,
+          ),
+        );
+
+        const amount =
+          getTransactionAmount(
+            transaction,
+          );
+
+        if (
+          transaction.type ===
+          'INCOME'
+        ) {
+          incomeCount += 1;
+          incomeAmount += amount;
+        } else {
+          expenseCount += 1;
+          expenseAmount += amount;
+        }
+      }
+
+      const currency =
+        currencies.values().next()
+          .value ?? 'BRL';
+
+      return {
+        total:
+          filteredTransactions.length,
+        voided,
+        incomeCount,
+        expenseCount,
+        incomeAmount,
+        expenseAmount,
+        netAmount:
+          incomeAmount -
+          expenseAmount,
+        currency,
+        mixedCurrencies:
+          currencies.size > 1,
+      };
+    }, [
+      filteredTransactions,
+    ]);
+
+  const groupedTransactions =
+    useMemo(() => {
+      const groups =
+        new Map<
+          string,
+          FinancialTransaction[]
+        >();
+
+      for (
+        const transaction of
+          filteredTransactions
+      ) {
+        const dateKey =
+          getDateKey(
+            transaction.transactionDate,
+          );
+
+        const current =
+          groups.get(dateKey) ?? [];
+
+        current.push(transaction);
+        groups.set(
+          dateKey,
+          current,
+        );
+      }
+
+      return Array.from(
+        groups.entries(),
+      ).map(
+        ([dateKey, items]) => ({
+          dateKey,
+          label:
+            getDateGroupLabel(
+              dateKey,
+            ),
+          items,
+        }),
       );
     }, [
       filteredTransactions,
     ]);
+
+  function formatSummaryAmount(
+    amount: number,
+  ) {
+    if (stats.mixedCurrencies) {
+      return 'Várias moedas';
+    }
+
+    return formatCurrency(
+      amount,
+      stats.currency,
+    );
+  }
 
   async function refreshTransactions() {
     const data =
@@ -677,7 +904,9 @@ function TransactionsPage() {
     setSuccess('');
 
     const amount =
-      Number(form.amount);
+      parseMoneyInput(
+        form.amount,
+      );
 
     if (
       !form.description.trim()
@@ -842,6 +1071,7 @@ function TransactionsPage() {
     setTypeFilter('ALL');
     setAccountFilter('ALL');
     setCategoryFilter('ALL');
+    setIncludeVoided(false);
   }
 
   const hasFilters =
@@ -850,7 +1080,8 @@ function TransactionsPage() {
     accountFilter !==
       'ALL' ||
     categoryFilter !==
-      'ALL';
+      'ALL' ||
+    includeVoided;
 
   return (
     <main className="dashboard-content transactions-page">
@@ -924,11 +1155,11 @@ function TransactionsPage() {
         <article className="transaction-stat-card">
           <span className="transaction-stat-icon total">
             <CircleDollarSign
-              size={19}
+              size={20}
             />
           </span>
 
-          <div>
+          <div className="transaction-stat-content">
             <span>
               Movimentações
             </span>
@@ -936,58 +1167,94 @@ function TransactionsPage() {
             <strong>
               {stats.total}
             </strong>
+
+            <small>
+              {stats.voided > 0
+                ? `${stats.voided} estornada${stats.voided === 1 ? '' : 's'}`
+                : 'No filtro atual'}
+            </small>
           </div>
         </article>
 
         <article className="transaction-stat-card">
           <span className="transaction-stat-icon income">
             <ArrowDownRight
-              size={19}
+              size={20}
             />
           </span>
 
-          <div>
+          <div className="transaction-stat-content">
             <span>
-              Receitas
+              Entradas
             </span>
 
             <strong>
-              {stats.income}
+              {formatSummaryAmount(
+                stats.incomeAmount,
+              )}
             </strong>
+
+            <small>
+              {stats.incomeCount}{' '}
+              {stats.incomeCount === 1
+                ? 'receita'
+                : 'receitas'}
+            </small>
           </div>
         </article>
 
         <article className="transaction-stat-card">
           <span className="transaction-stat-icon expense">
             <ArrowUpRight
-              size={19}
+              size={20}
             />
           </span>
 
-          <div>
+          <div className="transaction-stat-content">
             <span>
-              Despesas
+              Saídas
             </span>
 
             <strong>
-              {stats.expense}
+              {formatSummaryAmount(
+                stats.expenseAmount,
+              )}
             </strong>
+
+            <small>
+              {stats.expenseCount}{' '}
+              {stats.expenseCount === 1
+                ? 'despesa'
+                : 'despesas'}
+            </small>
           </div>
         </article>
 
         <article className="transaction-stat-card">
-          <span className="transaction-stat-icon voided">
-            <Ban size={19} />
+          <span className="transaction-stat-icon balance">
+            <Wallet size={20} />
           </span>
 
-          <div>
+          <div className="transaction-stat-content">
             <span>
-              Estornadas
+              Resultado
             </span>
 
-            <strong>
-              {stats.voided}
+            <strong
+              className={
+                stats.netAmount < 0
+                  ? 'negative'
+                  : undefined
+              }
+            >
+              {formatSummaryAmount(
+                stats.netAmount,
+              )}
             </strong>
+
+            <small>
+              Receitas menos despesas
+            </small>
           </div>
         </article>
       </section>
@@ -1131,21 +1398,25 @@ function TransactionsPage() {
         </div>
       </section>
 
-      <section className="panel transaction-table-panel">
-        <div className="transaction-table-header">
+      <section className="panel transaction-list-panel">
+        <div className="transaction-list-header">
           <div>
             <h3>
-              Movimentações
+              Histórico
             </h3>
 
             <p>
               {filteredTransactions.length}{' '}
               {filteredTransactions.length ===
               1
-                ? 'resultado'
-                : 'resultados'}
+                ? 'movimentação encontrada'
+                : 'movimentações encontradas'}
             </p>
           </div>
+
+          <span className="transaction-list-hint">
+            Mais recentes primeiro
+          </span>
         </div>
 
         {loading ? (
@@ -1197,240 +1468,204 @@ function TransactionsPage() {
               )}
           </div>
         ) : (
-          <div className="transaction-table-wrapper">
-            <table className="transaction-table">
-              <thead>
-                <tr>
-                  <th>
-                    Transação
-                  </th>
+          <div className="transaction-groups">
+            {groupedTransactions.map(
+              (group) => (
+                <section
+                  className="transaction-date-group"
+                  key={group.dateKey}
+                >
+                  <div className="transaction-date-group-header">
+                    <strong>
+                      {group.label}
+                    </strong>
 
-                  <th>
-                    Categoria
-                  </th>
+                    <span>
+                      {group.items.length}{' '}
+                      {group.items.length ===
+                      1
+                        ? 'movimentação'
+                        : 'movimentações'}
+                    </span>
+                  </div>
 
-                  <th>
-                    Conta
-                  </th>
+                  <div className="transaction-list">
+                    {group.items.map(
+                      (transaction) => {
+                        const income =
+                          transaction.type ===
+                          'INCOME';
 
-                  <th>
-                    Data
-                  </th>
+                        const expense =
+                          transaction.type ===
+                          'EXPENSE';
 
-                  <th>
-                    Tipo
-                  </th>
+                        const tone =
+                          getTransactionTone(
+                            transaction.type,
+                          );
 
-                  <th className="transaction-value-column">
-                    Valor
-                  </th>
+                        const amount =
+                          getTransactionAmount(
+                            transaction,
+                          );
 
-                  <th className="transaction-actions-column">
-                    Ações
-                  </th>
-                </tr>
-              </thead>
+                        const currency =
+                          getTransactionCurrency(
+                            transaction,
+                          );
 
-              <tbody>
-                {filteredTransactions.map(
-                  (
-                    transaction,
-                  ) => {
-                    const income =
-                      transaction.type ===
-                      'INCOME';
+                        const editable =
+                          canEditTransaction(
+                            transaction,
+                          );
 
-                    const expense =
-                      transaction.type ===
-                      'EXPENSE';
-
-                    const amount =
-                      getTransactionAmount(
-                        transaction,
-                      );
-
-                    const currency =
-                      getTransactionCurrency(
-                        transaction,
-                      );
-
-                    const editable =
-                      canEditTransaction(
-                        transaction,
-                      );
-
-                    return (
-                      <tr
-                        key={
-                          transaction.id
-                        }
-                        className={
+                        const voided =
                           transaction.status ===
-                          'VOIDED'
-                            ? 'transaction-row-voided'
-                            : undefined
-                        }
-                      >
-                        <td>
-                          <div className="transaction-description-cell">
-                            <span
-                              className={
-                                income
-                                  ? 'transaction-list-icon income'
-                                  : expense
-                                    ? 'transaction-list-icon expense'
-                                    : 'transaction-list-icon neutral'
-                              }
-                            >
-                              {income ? (
-                                <ArrowDownRight
-                                  size={
-                                    17
-                                  }
-                                />
-                              ) : (
-                                <ArrowUpRight
-                                  size={
-                                    17
-                                  }
-                                />
-                              )}
-                            </span>
+                          'VOIDED';
 
-                            <div>
-                              <strong>
-                                {
-                                  transaction.description
-                                }
+                        return (
+                          <article
+                            className={`transaction-list-item ${voided ? 'voided' : ''}`}
+                            key={
+                              transaction.id
+                            }
+                          >
+                            <div className="transaction-item-main">
+                              <span
+                                className={`transaction-list-icon ${tone}`}
+                              >
+                                {income ? (
+                                  <ArrowDownRight
+                                    size={18}
+                                  />
+                                ) : expense ? (
+                                  <ArrowUpRight
+                                    size={18}
+                                  />
+                                ) : transaction.type ===
+                                  'TRANSFER' ? (
+                                  <ArrowLeftRight
+                                    size={18}
+                                  />
+                                ) : (
+                                  <SlidersHorizontal
+                                    size={18}
+                                  />
+                                )}
+                              </span>
+
+                              <div className="transaction-item-copy">
+                                <div className="transaction-item-title-row">
+                                  <strong>
+                                    {
+                                      transaction.description
+                                    }
+                                  </strong>
+
+                                  <span
+                                    className={`transaction-type-pill ${tone}`}
+                                  >
+                                    {getTypeLabel(
+                                      transaction.type,
+                                    )}
+                                  </span>
+
+                                  {voided && (
+                                    <span className="transaction-status-pill">
+                                      Estornada
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="transaction-item-meta">
+                                  <span>
+                                    {transaction
+                                      .category
+                                      ?.name ??
+                                      'Sem categoria'}
+                                  </span>
+
+                                  <i />
+
+                                  <span>
+                                    {getAccountNames(
+                                      transaction,
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="transaction-item-value-area">
+                              <strong
+                                className={`transaction-value ${voided ? 'voided' : tone}`}
+                              >
+                                {income
+                                  ? '+ '
+                                  : expense
+                                    ? '- '
+                                    : ''}
+
+                                {formatCurrency(
+                                  amount,
+                                  currency,
+                                )}
                               </strong>
 
                               <span>
-                                {transaction.status ===
-                                'VOIDED'
-                                  ? 'Transação estornada'
-                                  : 'Lançamento registrado'}
+                                {voided
+                                  ? 'Sem efeito no saldo'
+                                  : getTypeLabel(
+                                      transaction.type,
+                                    )}
                               </span>
                             </div>
-                          </div>
-                        </td>
 
-                        <td>
-                          <span className="transaction-category">
-                            {transaction
-                              .category
-                              ?.name ??
-                              'Sem categoria'}
-                          </span>
-                        </td>
+                            <div className="transaction-item-actions">
+                              {editable && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openEditModal(
+                                        transaction,
+                                      )
+                                    }
+                                    title="Editar transação"
+                                    aria-label="Editar transação"
+                                  >
+                                    <Edit3
+                                      size={15}
+                                    />
+                                  </button>
 
-                        <td>
-                          <span className="transaction-account">
-                            {getAccountNames(
-                              transaction,
-                            )}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span className="transaction-date">
-                            {formatDate(
-                              transaction.transactionDate,
-                            )}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span
-                            className={
-                              income
-                                ? 'transaction-type-pill income'
-                                : expense
-                                  ? 'transaction-type-pill expense'
-                                  : 'transaction-type-pill neutral'
-                            }
-                          >
-                            {getTypeLabel(
-                              transaction.type,
-                            )}
-                          </span>
-                        </td>
-
-                        <td className="transaction-value-column">
-                          <strong
-                            className={
-                              transaction.status ===
-                              'VOIDED'
-                                ? 'transaction-value voided'
-                                : income
-                                  ? 'transaction-value income'
-                                  : expense
-                                    ? 'transaction-value expense'
-                                    : 'transaction-value'
-                            }
-                          >
-                            {income
-                              ? '+ '
-                              : expense
-                                ? '- '
-                                : ''}
-
-                            {formatCurrency(
-                              amount,
-                              currency,
-                            )}
-                          </strong>
-                        </td>
-
-                        <td className="transaction-actions-column">
-                          {editable ? (
-                            <div className="transaction-row-actions">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openEditModal(
-                                    transaction,
-                                  )
-                                }
-                                title="Editar transação"
-                                aria-label="Editar transação"
-                              >
-                                <Edit3
-                                  size={
-                                    15
-                                  }
-                                />
-                              </button>
-
-                              <button
-                                type="button"
-                                className="danger"
-                                onClick={() =>
-                                  setVoidTarget(
-                                    transaction,
-                                  )
-                                }
-                                title="Estornar transação"
-                                aria-label="Estornar transação"
-                              >
-                                <Ban
-                                  size={
-                                    15
-                                  }
-                                />
-                              </button>
+                                  <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={() =>
+                                      setVoidTarget(
+                                        transaction,
+                                      )
+                                    }
+                                    title="Estornar transação"
+                                    aria-label="Estornar transação"
+                                  >
+                                    <Ban
+                                      size={15}
+                                    />
+                                  </button>
+                                </>
+                              )}
                             </div>
-                          ) : (
-                            <span className="transaction-no-actions">
-                              —
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  },
-                )}
-              </tbody>
-            </table>
+                          </article>
+                        );
+                      },
+                    )}
+                  </div>
+                </section>
+              ),
+            )}
           </div>
         )}
       </section>
@@ -1583,9 +1818,9 @@ function TransactionsPage() {
                     </span>
 
                     <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
                       value={
                         form.amount
                       }

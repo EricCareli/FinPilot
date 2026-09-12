@@ -39,6 +39,11 @@ export type CreditCardInvoiceStatus =
   | 'OVERDUE'
   | 'PAID';
 
+export type BudgetStatus =
+  | 'ON_TRACK'
+  | 'WARNING'
+  | 'EXCEEDED';
+
 export interface User {
   id: string;
   name: string;
@@ -252,6 +257,40 @@ export interface PayCreditCardInvoiceInput {
   paymentDate: string;
 }
 
+export interface Budget {
+  id: string;
+  workspaceId: string;
+  categoryId: string;
+  amount: MoneyValue;
+  month: number;
+  year: number;
+  createdAt: string;
+  updatedAt: string;
+  category: Category;
+}
+
+export interface BudgetProgress {
+  budget: Budget;
+  spent: MoneyValue;
+  remaining: MoneyValue;
+  percentage: MoneyValue;
+  status: BudgetStatus;
+}
+
+export interface CreateBudgetInput {
+  categoryId: string;
+  amount: number;
+  month: number;
+  year: number;
+}
+
+export interface UpdateBudgetInput {
+  categoryId?: string;
+  amount?: number;
+  month?: number;
+  year?: number;
+}
+
 export interface DashboardAccount {
   id: string;
   name: string;
@@ -285,11 +324,7 @@ export interface DashboardBudget {
   spent: MoneyValue;
   remaining: MoneyValue;
   percentageUsed: MoneyValue;
-
-  status:
-    | 'ON_TRACK'
-    | 'WARNING'
-    | 'EXCEEDED';
+  status: BudgetStatus;
 }
 
 export interface DashboardCreditCard {

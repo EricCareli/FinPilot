@@ -1,8 +1,11 @@
 import type {
   Account,
   AccountBalance,
+  Budget,
+  BudgetProgress,
   Category,
   CreateAccountInput,
+  CreateBudgetInput,
   CreateCreditCardInput,
   CreateCreditCardPurchaseInput,
   CreateTransactionInput,
@@ -16,6 +19,7 @@ import type {
   FinancialTransaction,
   PayCreditCardInvoiceInput,
   UpdateAccountInput,
+  UpdateBudgetInput,
   UpdateCreditCardPurchaseInput,
   UpdateTransactionInput,
   User,
@@ -97,6 +101,13 @@ interface CategoriesResponse {
     Category[];
 }
 
+interface CategoryResponse {
+  status: 'success';
+
+  category:
+    Category;
+}
+
 interface CreditCardResponse {
   status: 'success';
 
@@ -147,6 +158,34 @@ interface CreditCardPaymentResponse {
 
   payment:
     CreditCardPaymentResult;
+}
+
+interface BudgetsResponse {
+  status: 'success';
+
+  budgets:
+    Budget[];
+}
+
+interface BudgetResponse {
+  status: 'success';
+
+  budget:
+    Budget;
+}
+
+interface DeletedBudgetResponse {
+  status: 'success';
+
+  deletedBudget:
+    Budget;
+}
+
+interface BudgetProgressResponse {
+  status: 'success';
+
+  progress:
+    BudgetProgress;
 }
 
 export class ApiError extends Error {
@@ -505,6 +544,28 @@ export async function getAccountBalance(
   return data.balance;
 }
 
+export async function createCategory(
+  token: string,
+  workspaceId: string,
+  input: {
+    name: string;
+    type: EditableTransactionType;
+  },
+): Promise<Category> {
+  const data =
+    await request<CategoryResponse>(
+      '/categories',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.category;
+}
+
 export async function getCategories(
   token: string,
   workspaceId: string,
@@ -526,6 +587,107 @@ export async function getCategories(
     );
 
   return data.categories;
+}
+
+export async function getBudgets(
+  token: string,
+  workspaceId: string,
+  period?: {
+    month: number;
+    year: number;
+  },
+): Promise<Budget[]> {
+  const query =
+    period
+      ? `?month=${period.month}&year=${period.year}`
+      : '';
+
+  const data =
+    await request<BudgetsResponse>(
+      `/budgets${query}`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.budgets;
+}
+
+export async function createBudget(
+  token: string,
+  workspaceId: string,
+  input:
+    CreateBudgetInput,
+): Promise<Budget> {
+  const data =
+    await request<BudgetResponse>(
+      '/budgets',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.budget;
+}
+
+export async function updateBudget(
+  token: string,
+  workspaceId: string,
+  budgetId: string,
+  input:
+    UpdateBudgetInput,
+): Promise<Budget> {
+  const data =
+    await request<BudgetResponse>(
+      `/budgets/${budgetId}`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.budget;
+}
+
+export async function deleteBudget(
+  token: string,
+  workspaceId: string,
+  budgetId: string,
+): Promise<Budget> {
+  const data =
+    await request<DeletedBudgetResponse>(
+      `/budgets/${budgetId}`,
+      {
+        method: 'DELETE',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.deletedBudget;
+}
+
+export async function getBudgetProgress(
+  token: string,
+  workspaceId: string,
+  budgetId: string,
+): Promise<BudgetProgress> {
+  const data =
+    await request<BudgetProgressResponse>(
+      `/budgets/${budgetId}/progress`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.progress;
 }
 
 export async function createCreditCard(
