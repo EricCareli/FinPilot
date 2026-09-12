@@ -1,4 +1,6 @@
 import {
+  useCallback,
+  useEffect,
   useState,
 } from 'react';
 
@@ -7,12 +9,52 @@ import type {
 } from 'react';
 
 import {
+  ApiError,
+  getCurrentUser,
+  getDashboard,
+  getWorkspaces,
   login,
 } from './lib/api';
 
+import type {
+  DashboardData,
+  User,
+  Workspace,
+} from './types/api';
+
+import DashboardPage from './pages/DashboardPage';
+
 import './App.css';
 
+const TOKEN_KEY =
+  'finpilot_token';
+
+const WORKSPACE_KEY =
+  'finpilot_workspace_id';
+
+function getCurrentPeriod() {
+  const date =
+    new Date();
+
+  return {
+    month:
+      date.getMonth() + 1,
+    year:
+      date.getFullYear(),
+  };
+}
+
 function App() {
+  const [
+    token,
+    setToken,
+  ] = useState<string | null>(
+    () =>
+      localStorage.getItem(
+        TOKEN_KEY,
+      ),
+  );
+
   const [
     email,
     setEmail,
@@ -24,34 +66,271 @@ function App() {
   ] = useState('');
 
   const [
-    error,
-    setError,
+    loginError,
+    setLoginError,
   ] = useState('');
 
   const [
-    loading,
-    setLoading,
+    loggingIn,
+    setLoggingIn,
   ] = useState(false);
 
   const [
-    authenticated,
-    setAuthenticated,
-  ] = useState(
-    () =>
-      Boolean(
-        localStorage.getItem(
-          'finpilot_token',
-        ),
-      ),
+    user,
+    setUser,
+  ] = useState<User | null>(
+    null,
   );
+
+  const [
+    workspaces,
+    setWorkspaces,
+  ] = useState<Workspace[]>(
+    [],
+  );
+
+  const [
+    workspace,
+    setWorkspace,
+  ] =
+    useState<Workspace | null>(
+      null,
+    );
+
+  const [
+    dashboard,
+    setDashboard,
+  ] =
+    useState<DashboardData | null>(
+      null,
+    );
+
+  const [
+    loadingApp,
+    setLoadingApp,
+  ] = useState(
+    Boolean(token),
+  );
+
+  const [
+    loadingDashboard,
+    setLoadingDashboard,
+  ] = useState(false);
+
+  const currentPeriod =
+    getCurrentPeriod();
+
+  const [
+    month,
+    setMonth,
+  ] = useState(
+    currentPeriod.month,
+  );
+
+  const [
+    year,
+    setYear,
+  ] = useState(
+    currentPeriod.year,
+  );
+
+  const [
+    appError,
+    setAppError,
+  ] = useState('');
+
+  const logout =
+    useCallback(() => {
+      localStorage.removeItem(
+        TOKEN_KEY,
+      );
+
+      localStorage.removeItem(
+        WORKSPACE_KEY,
+      );
+
+      setToken(null);
+      setUser(null);
+      setWorkspace(null);
+      setWorkspaces([]);
+      setDashboard(null);
+      setPassword('');
+      setAppError('');
+      setLoadingApp(false);
+      setLoadingDashboard(false);
+    }, []);
+
+  const handleApiError =
+    useCallback(
+      (error: unknown) => {
+        if (
+          error instanceof
+            ApiError &&
+          error.statusCode ===
+            401
+        ) {
+          logout();
+
+          return;
+        }
+
+        setAppError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível carregar os dados.',
+        );
+      },
+      [logout],
+    );
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function bootstrap() {
+      setLoadingApp(true);
+      setAppError('');
+
+      try {
+        const [
+          currentUser,
+          availableWorkspaces,
+        ] =
+          await Promise.all([
+            getCurrentUser(
+              token!,
+            ),
+            getWorkspaces(
+              token!,
+            ),
+          ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        setUser(currentUser);
+        setWorkspaces(
+          availableWorkspaces,
+        );
+
+        if (
+          availableWorkspaces.length ===
+          0
+        ) {
+          setAppError(
+            'Nenhum workspace disponível.',
+          );
+
+          return;
+        }
+
+        const savedWorkspaceId =
+          localStorage.getItem(
+            WORKSPACE_KEY,
+          );
+
+        const selectedWorkspace =
+          availableWorkspaces.find(
+            (item) =>
+              item.id ===
+              savedWorkspaceId,
+          ) ??
+          availableWorkspaces[0];
+
+        setWorkspace(
+          selectedWorkspace,
+        );
+
+        localStorage.setItem(
+          WORKSPACE_KEY,
+          selectedWorkspace.id,
+        );
+      } catch (error) {
+        if (!cancelled) {
+          handleApiError(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingApp(false);
+        }
+      }
+    }
+
+    void bootstrap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    token,
+    handleApiError,
+  ]);
+
+  useEffect(() => {
+    if (
+      !token ||
+      !workspace
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadDashboard() {
+      setLoadingDashboard(true);
+      setAppError('');
+
+      try {
+        const data =
+          await getDashboard(
+            token!,
+            workspace!.id,
+            {
+              month,
+              year,
+            },
+          );
+
+        if (!cancelled) {
+          setDashboard(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          handleApiError(error);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingDashboard(
+            false,
+          );
+        }
+      }
+    }
+
+    void loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    token,
+    workspace,
+    month,
+    year,
+    handleApiError,
+  ]);
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    setError('');
-    setLoading(true);
+    setLoginError('');
+    setLoggingIn(true);
 
     try {
       const response =
@@ -61,181 +340,335 @@ function App() {
         );
 
       localStorage.setItem(
-        'finpilot_token',
+        TOKEN_KEY,
         response.token,
       );
 
-      setAuthenticated(true);
+      setToken(
+        response.token,
+      );
     } catch (error) {
-      setError(
+      setLoginError(
         error instanceof Error
           ? error.message
           : 'Não foi possível entrar.',
       );
     } finally {
-      setLoading(false);
+      setLoggingIn(false);
     }
   }
 
-  function handleLogout() {
-    localStorage.removeItem(
-      'finpilot_token',
+  function handleWorkspaceChange(
+    workspaceId: string,
+  ) {
+    const nextWorkspace =
+      workspaces.find(
+        (item) =>
+          item.id ===
+          workspaceId,
+      );
+
+    if (!nextWorkspace) {
+      return;
+    }
+
+    setWorkspace(
+      nextWorkspace,
     );
 
-    setAuthenticated(false);
-    setPassword('');
+    localStorage.setItem(
+      WORKSPACE_KEY,
+      nextWorkspace.id,
+    );
   }
 
-  if (authenticated) {
+  function handlePeriodChange(
+    nextMonth: number,
+    nextYear: number,
+  ) {
+    setMonth(nextMonth);
+    setYear(nextYear);
+  }
+
+  if (!token) {
     return (
-      <main className="authenticated-page">
-        <section className="welcome-card">
-          <span className="brand">
-            FinPilot
-          </span>
+      <main className="login-page">
+        <section className="login-presentation">
+          <div className="brand-wrapper">
+            <span className="brand-mark">
+              F
+            </span>
 
-          <h1>
-            Login realizado com sucesso
-          </h1>
+            <span className="brand">
+              FinPilot
+            </span>
+          </div>
 
-          <p>
-            O frontend já está conectado
-            à API do FinPilot.
+          <div className="presentation-content">
+            <p className="eyebrow">
+              CONTROLE FINANCEIRO
+            </p>
+
+            <h1>
+              Sua vida financeira,
+              <br />
+              sob controle.
+            </h1>
+
+            <p className="description">
+              Organize suas contas,
+              acompanhe seus gastos
+              e tome decisões com
+              mais clareza.
+            </p>
+
+            <div className="login-feature-grid">
+              <div>
+                <strong>
+                  360°
+                </strong>
+
+                <span>
+                  visão das finanças
+                </span>
+              </div>
+
+              <div>
+                <strong>
+                  Real-time
+                </strong>
+
+                <span>
+                  dados atualizados
+                </span>
+              </div>
+
+              <div>
+                <strong>
+                  Smart
+                </strong>
+
+                <span>
+                  planejamento
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <p className="footer-copy">
+            FinPilot © 2026
           </p>
+        </section>
 
-          <button
-            type="button"
-            className="primary-button"
-            onClick={handleLogout}
-          >
-            Sair
-          </button>
+        <section className="login-panel">
+          <div className="login-card">
+            <p className="mobile-brand">
+              FinPilot
+            </p>
+
+            <div className="login-heading">
+              <span className="login-badge">
+                ACESSO SEGURO
+              </span>
+
+              <h2>
+                Bem-vindo de volta
+              </h2>
+
+              <p>
+                Entre na sua conta
+                para acessar seu
+                painel financeiro.
+              </p>
+            </div>
+
+            <form
+              className="login-form"
+              onSubmit={
+                handleSubmit
+              }
+            >
+              <label>
+                E-mail
+
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(
+                    event,
+                  ) =>
+                    setEmail(
+                      event.target
+                        .value,
+                    )
+                  }
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+
+              <label>
+                Senha
+
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(
+                    event,
+                  ) =>
+                    setPassword(
+                      event.target
+                        .value,
+                    )
+                  }
+                  placeholder="Sua senha"
+                  autoComplete="current-password"
+                  required
+                />
+              </label>
+
+              {loginError && (
+                <div
+                  className="error-message"
+                  role="alert"
+                >
+                  {loginError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={
+                  loggingIn
+                }
+              >
+                {loggingIn
+                  ? 'Entrando...'
+                  : 'Entrar no FinPilot'}
+              </button>
+            </form>
+
+            <p className="security-text">
+              Ambiente protegido por
+              autenticação segura.
+            </p>
+          </div>
         </section>
       </main>
     );
   }
 
-  return (
-    <main className="login-page">
-      <section className="login-presentation">
-        <div className="brand-wrapper">
-          <span className="brand-mark">
-            F
-          </span>
+  if (loadingApp) {
+    return (
+      <main className="app-loading-screen">
+        <div className="loading-logo">
+          F
+        </div>
 
+        <strong>
+          FinPilot
+        </strong>
+
+        <span>
+          Preparando seu painel...
+        </span>
+      </main>
+    );
+  }
+
+  if (
+    appError &&
+    (!user ||
+      !workspace ||
+      !dashboard)
+  ) {
+    return (
+      <main className="app-error-screen">
+        <div className="error-card">
           <span className="brand">
             FinPilot
           </span>
-        </div>
-
-        <div className="presentation-content">
-          <p className="eyebrow">
-            CONTROLE FINANCEIRO
-          </p>
 
           <h1>
-            Sua vida financeira,
-            <br />
-            sob controle.
+            Não foi possível carregar
+            seu painel
           </h1>
 
-          <p className="description">
-            Organize suas contas,
-            acompanhe seus gastos e
-            tome decisões financeiras
-            com mais clareza.
+          <p>
+            {appError}
           </p>
-        </div>
 
-        <p className="footer-copy">
-          FinPilot © 2026
-        </p>
-      </section>
-
-      <section className="login-panel">
-        <div className="login-card">
-          <div>
-            <p className="mobile-brand">
-              FinPilot
-            </p>
-
-            <h2>
-              Bem-vindo de volta
-            </h2>
-
-            <p className="login-subtitle">
-              Entre na sua conta para
-              acessar seu painel.
-            </p>
-          </div>
-
-          <form
-            className="login-form"
-            onSubmit={
-              handleSubmit
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() =>
+              window.location.reload()
             }
           >
-            <label>
-              E-mail
+            Tentar novamente
+          </button>
 
-              <input
-                type="email"
-                value={email}
-                onChange={(event) =>
-                  setEmail(
-                    event.target.value,
-                  )
-                }
-                placeholder="seu@email.com"
-                autoComplete="email"
-                required
-              />
-            </label>
-
-            <label>
-              Senha
-
-              <input
-                type="password"
-                value={password}
-                onChange={(event) =>
-                  setPassword(
-                    event.target.value,
-                  )
-                }
-                placeholder="Sua senha"
-                autoComplete="current-password"
-                required
-              />
-            </label>
-
-            {error && (
-              <div
-                className="error-message"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={loading}
-            >
-              {loading
-                ? 'Entrando...'
-                : 'Entrar'}
-            </button>
-          </form>
-
-          <p className="security-text">
-            Seus dados são protegidos
-            pelo FinPilot.
-          </p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={logout}
+          >
+            Sair da conta
+          </button>
         </div>
-      </section>
-    </main>
+      </main>
+    );
+  }
+
+  if (
+    !user ||
+    !workspace ||
+    !dashboard
+  ) {
+    return (
+      <main className="app-loading-screen">
+        <div className="loading-logo">
+          F
+        </div>
+
+        <strong>
+          FinPilot
+        </strong>
+
+        <span>
+          Carregando dados...
+        </span>
+      </main>
+    );
+  }
+
+  return (
+    <DashboardPage
+      user={user}
+      workspaces={
+        workspaces
+      }
+      workspace={
+        workspace
+      }
+      dashboard={
+        dashboard
+      }
+      month={month}
+      year={year}
+      loading={
+        loadingDashboard
+      }
+      onWorkspaceChange={
+        handleWorkspaceChange
+      }
+      onPeriodChange={
+        handlePeriodChange
+      }
+      onLogout={logout}
+    />
   );
 }
 
