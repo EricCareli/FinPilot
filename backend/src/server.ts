@@ -142,6 +142,22 @@ async function buildServer() {
 
   await app.register(cors, {
     origin: true,
+
+    methods: [
+      'GET',
+      'HEAD',
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE',
+      'OPTIONS',
+    ],
+
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-workspace-id',
+    ],
   });
 
   await app.register(jwt, {

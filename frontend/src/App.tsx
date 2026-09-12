@@ -29,6 +29,7 @@ import type {
 
 import AppLayout from './components/AppLayout';
 import AccountsPage from './pages/AccountsPage';
+import CreditCardsPage from './pages/CreditCardsPage';
 import DashboardPage from './pages/DashboardPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import TransactionsPage from './pages/TransactionsPage';
@@ -611,10 +612,7 @@ function App() {
         <Route
           path="/cards"
           element={
-            <PlaceholderPage
-              title="Cartões"
-              description="Controle cartões, limites, compras e faturas."
-            />
+            <CreditCardsPage />
           }
         />
 

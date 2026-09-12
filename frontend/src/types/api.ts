@@ -33,6 +33,12 @@ export type LedgerEntryType =
   | 'CREDIT'
   | 'DEBIT';
 
+export type CreditCardInvoiceStatus =
+  | 'OPEN'
+  | 'CLOSED'
+  | 'OVERDUE'
+  | 'PAID';
+
 export interface User {
   id: string;
   name: string;
@@ -104,7 +110,7 @@ export interface LedgerEntry {
   account: Account;
 }
 
-export interface FinancialTransaction {
+export interface FinancialTransactionRecord {
   id: string;
   workspaceId: string;
   categoryId: string | null;
@@ -128,7 +134,10 @@ export interface FinancialTransaction {
   transactionDate: string;
   createdAt: string;
   updatedAt: string;
+}
 
+export interface FinancialTransaction
+  extends FinancialTransactionRecord {
   category:
     | Category
     | null;
@@ -162,6 +171,85 @@ export interface UpdateTransactionInput {
   amount?: number;
   description?: string;
   transactionDate?: string;
+}
+
+export interface CreditCard {
+  id: string;
+  accountId: string;
+  creditLimit: MoneyValue;
+  closingDay: number;
+  dueDay: number;
+  createdAt: string;
+  updatedAt: string;
+  account: Account;
+}
+
+export interface CreditCardLimit {
+  accountId: string;
+  creditLimit: MoneyValue;
+  usedLimit: MoneyValue;
+  availableLimit: MoneyValue;
+}
+
+export interface CreditCardInvoice {
+  id: string;
+  creditCardId: string;
+  referenceMonth: number;
+  referenceYear: number;
+  closingDate: string;
+  dueDate: string;
+  totalAmount: MoneyValue;
+  status: CreditCardInvoiceStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCreditCardInput {
+  accountId: string;
+  creditLimit: number;
+  closingDay: number;
+  dueDay: number;
+}
+
+export interface CreateCreditCardPurchaseInput {
+  categoryId?: string;
+  amount: number;
+  description: string;
+  transactionDate: string;
+}
+
+export interface UpdateCreditCardPurchaseInput {
+  categoryId?:
+    | string
+    | null;
+
+  amount?: number;
+  description?: string;
+  transactionDate?: string;
+}
+
+export interface CreditCardPurchaseResult {
+  transaction:
+    FinancialTransactionRecord;
+
+  invoice:
+    CreditCardInvoice;
+}
+
+export interface CreditCardPaymentResult {
+  invoice:
+    CreditCardInvoice;
+
+  transaction:
+    FinancialTransactionRecord;
+
+  paymentAmount:
+    MoneyValue;
+}
+
+export interface PayCreditCardInvoiceInput {
+  paymentAccountId: string;
+  paymentDate: string;
 }
 
 export interface DashboardAccount {

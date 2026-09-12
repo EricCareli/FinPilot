@@ -3,11 +3,20 @@ import type {
   AccountBalance,
   Category,
   CreateAccountInput,
+  CreateCreditCardInput,
+  CreateCreditCardPurchaseInput,
   CreateTransactionInput,
+  CreditCard,
+  CreditCardInvoice,
+  CreditCardLimit,
+  CreditCardPaymentResult,
+  CreditCardPurchaseResult,
   DashboardData,
   EditableTransactionType,
   FinancialTransaction,
+  PayCreditCardInvoiceInput,
   UpdateAccountInput,
+  UpdateCreditCardPurchaseInput,
   UpdateTransactionInput,
   User,
   Workspace,
@@ -52,12 +61,16 @@ interface DashboardResponse {
 
 interface TransactionsResponse {
   status: 'success';
-  transactions: FinancialTransaction[];
+
+  transactions:
+    FinancialTransaction[];
 }
 
 interface TransactionResponse {
   status: 'success';
-  transaction: FinancialTransaction;
+
+  transaction:
+    FinancialTransaction;
 }
 
 interface AccountsResponse {
@@ -72,12 +85,68 @@ interface AccountResponse {
 
 interface AccountBalanceResponse {
   status: 'success';
-  balance: AccountBalance;
+
+  balance:
+    AccountBalance;
 }
 
 interface CategoriesResponse {
   status: 'success';
-  categories: Category[];
+
+  categories:
+    Category[];
+}
+
+interface CreditCardResponse {
+  status: 'success';
+
+  creditCard:
+    CreditCard;
+}
+
+interface CreditCardLimitResponse {
+  status: 'success';
+
+  limit:
+    CreditCardLimit;
+}
+
+interface CreditCardPurchaseResponse {
+  status: 'success';
+
+  transaction:
+    CreditCardPurchaseResult['transaction'];
+
+  invoice:
+    CreditCardInvoice;
+}
+
+interface CreditCardPurchaseMutationResponse {
+  status: 'success';
+
+  purchase:
+    FinancialTransaction;
+}
+
+interface CreditCardInvoicesResponse {
+  status: 'success';
+
+  invoices:
+    CreditCardInvoice[];
+}
+
+interface CreditCardInvoiceResponse {
+  status: 'success';
+
+  invoice:
+    CreditCardInvoice;
+}
+
+interface CreditCardPaymentResponse {
+  status: 'success';
+
+  payment:
+    CreditCardPaymentResult;
 }
 
 export class ApiError extends Error {
@@ -90,7 +159,8 @@ export class ApiError extends Error {
     super(message);
 
     this.name = 'ApiError';
-    this.statusCode = statusCode;
+    this.statusCode =
+      statusCode;
   }
 }
 
@@ -138,15 +208,17 @@ async function request<
   }
 
   if (options.workspaceId) {
-    headers['x-workspace-id'] =
-      options.workspaceId;
+    headers[
+      'x-workspace-id'
+    ] = options.workspaceId;
   }
 
   if (
     options.body !== undefined
   ) {
-    headers['Content-Type'] =
-      'application/json';
+    headers[
+      'Content-Type'
+    ] = 'application/json';
   }
 
   const response =
@@ -273,8 +345,11 @@ export async function getTransactions(
 export async function createTransaction(
   token: string,
   workspaceId: string,
-  input: CreateTransactionInput,
-): Promise<FinancialTransaction> {
+  input:
+    CreateTransactionInput,
+): Promise<
+  FinancialTransaction
+> {
   const data =
     await request<TransactionResponse>(
       '/transactions',
@@ -293,8 +368,11 @@ export async function updateTransaction(
   token: string,
   workspaceId: string,
   transactionId: string,
-  input: UpdateTransactionInput,
-): Promise<FinancialTransaction> {
+  input:
+    UpdateTransactionInput,
+): Promise<
+  FinancialTransaction
+> {
   const data =
     await request<TransactionResponse>(
       `/transactions/${transactionId}`,
@@ -313,7 +391,9 @@ export async function voidTransaction(
   token: string,
   workspaceId: string,
   transactionId: string,
-): Promise<FinancialTransaction> {
+): Promise<
+  FinancialTransaction
+> {
   const data =
     await request<TransactionResponse>(
       `/transactions/${transactionId}/void`,
@@ -352,7 +432,8 @@ export async function getAccounts(
 export async function createAccount(
   token: string,
   workspaceId: string,
-  input: CreateAccountInput,
+  input:
+    CreateAccountInput,
 ): Promise<Account> {
   const data =
     await request<AccountResponse>(
@@ -372,7 +453,8 @@ export async function updateAccount(
   token: string,
   workspaceId: string,
   accountId: string,
-  input: UpdateAccountInput,
+  input:
+    UpdateAccountInput,
 ): Promise<Account> {
   const data =
     await request<AccountResponse>(
@@ -426,7 +508,8 @@ export async function getAccountBalance(
 export async function getCategories(
   token: string,
   workspaceId: string,
-  type?: EditableTransactionType,
+  type?:
+    EditableTransactionType,
 ): Promise<Category[]> {
   const query =
     type
@@ -443,4 +526,213 @@ export async function getCategories(
     );
 
   return data.categories;
+}
+
+export async function createCreditCard(
+  token: string,
+  workspaceId: string,
+  input:
+    CreateCreditCardInput,
+): Promise<CreditCard> {
+  const data =
+    await request<CreditCardResponse>(
+      '/credit-cards',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.creditCard;
+}
+
+export async function getCreditCard(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+): Promise<CreditCard> {
+  const data =
+    await request<CreditCardResponse>(
+      `/credit-cards/${accountId}`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.creditCard;
+}
+
+export async function getCreditCardLimit(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+): Promise<CreditCardLimit> {
+  const data =
+    await request<CreditCardLimitResponse>(
+      `/credit-cards/${accountId}/limit`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.limit;
+}
+
+export async function createCreditCardPurchase(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+  input:
+    CreateCreditCardPurchaseInput,
+): Promise<CreditCardPurchaseResult> {
+  const data =
+    await request<CreditCardPurchaseResponse>(
+      `/credit-cards/${accountId}/purchases`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return {
+    transaction:
+      data.transaction,
+
+    invoice:
+      data.invoice,
+  };
+}
+
+export async function updateCreditCardPurchase(
+  token: string,
+  workspaceId: string,
+  transactionId: string,
+  input:
+    UpdateCreditCardPurchaseInput,
+): Promise<
+  FinancialTransaction
+> {
+  const data =
+    await request<CreditCardPurchaseMutationResponse>(
+      `/credit-cards/purchases/${transactionId}`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.purchase;
+}
+
+export async function voidCreditCardPurchase(
+  token: string,
+  workspaceId: string,
+  transactionId: string,
+): Promise<
+  FinancialTransaction
+> {
+  const data =
+    await request<CreditCardPurchaseMutationResponse>(
+      `/credit-cards/purchases/${transactionId}/void`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.purchase;
+}
+
+export async function createCreditCardInvoice(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+  month: number,
+  year: number,
+): Promise<CreditCardInvoice> {
+  const data =
+    await request<CreditCardInvoiceResponse>(
+      `/credit-cards/${accountId}/invoices`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+
+        body: {
+          month,
+          year,
+        },
+      },
+    );
+
+  return data.invoice;
+}
+
+export async function getCreditCardInvoices(
+  token: string,
+  workspaceId: string,
+  accountId: string,
+): Promise<
+  CreditCardInvoice[]
+> {
+  const data =
+    await request<CreditCardInvoicesResponse>(
+      `/credit-cards/${accountId}/invoices`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.invoices;
+}
+
+export async function closeCreditCardInvoice(
+  token: string,
+  workspaceId: string,
+  invoiceId: string,
+): Promise<CreditCardInvoice> {
+  const data =
+    await request<CreditCardInvoiceResponse>(
+      `/credit-cards/invoices/${invoiceId}/close`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.invoice;
+}
+
+export async function payCreditCardInvoice(
+  token: string,
+  workspaceId: string,
+  invoiceId: string,
+  input:
+    PayCreditCardInvoiceInput,
+): Promise<
+  CreditCardPaymentResult
+> {
+  const data =
+    await request<CreditCardPaymentResponse>(
+      `/credit-cards/invoices/${invoiceId}/pay`,
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.payment;
 }
