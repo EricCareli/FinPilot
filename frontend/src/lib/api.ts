@@ -9,6 +9,7 @@ import type {
   CreateCreditCardInput,
   CreateCreditCardPurchaseInput,
   CreateTransactionInput,
+  CreateGoalInput,
   CreditCard,
   CreditCardInvoice,
   CreditCardLimit,
@@ -17,10 +18,14 @@ import type {
   DashboardData,
   EditableTransactionType,
   FinancialTransaction,
+  Goal,
+  GoalProgress,
   PayCreditCardInvoiceInput,
   UpdateAccountInput,
   UpdateBudgetInput,
   UpdateCreditCardPurchaseInput,
+  UpdateGoalAmountInput,
+  UpdateGoalInput,
   UpdateTransactionInput,
   User,
   Workspace,
@@ -186,6 +191,26 @@ interface BudgetProgressResponse {
 
   progress:
     BudgetProgress;
+}
+
+interface GoalsResponse {
+  status: 'success';
+  goals: Goal[];
+}
+
+interface GoalResponse {
+  status: 'success';
+  goal: Goal;
+}
+
+interface DeletedGoalResponse {
+  status: 'success';
+  deletedGoal: Goal;
+}
+
+interface GoalProgressResponse {
+  status: 'success';
+  progress: GoalProgress;
 }
 
 export class ApiError extends Error {
@@ -688,6 +713,116 @@ export async function getBudgetProgress(
     );
 
   return data.progress;
+}
+
+export async function getGoals(
+  token: string,
+  workspaceId: string,
+): Promise<Goal[]> {
+  const data =
+    await request<GoalsResponse>(
+      '/goals',
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.goals;
+}
+
+export async function createGoal(
+  token: string,
+  workspaceId: string,
+  input: CreateGoalInput,
+): Promise<Goal> {
+  const data =
+    await request<GoalResponse>(
+      '/goals',
+      {
+        method: 'POST',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.goal;
+}
+
+export async function getGoalProgress(
+  token: string,
+  workspaceId: string,
+  goalId: string,
+): Promise<GoalProgress> {
+  const data =
+    await request<GoalProgressResponse>(
+      `/goals/${goalId}/progress`,
+      {
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.progress;
+}
+
+export async function updateGoal(
+  token: string,
+  workspaceId: string,
+  goalId: string,
+  input: UpdateGoalInput,
+): Promise<Goal> {
+  const data =
+    await request<GoalResponse>(
+      `/goals/${goalId}`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.goal;
+}
+
+export async function updateGoalAmount(
+  token: string,
+  workspaceId: string,
+  goalId: string,
+  input: UpdateGoalAmountInput,
+): Promise<Goal> {
+  const data =
+    await request<GoalResponse>(
+      `/goals/${goalId}/amount`,
+      {
+        method: 'PATCH',
+        token,
+        workspaceId,
+        body: input,
+      },
+    );
+
+  return data.goal;
+}
+
+export async function deleteGoal(
+  token: string,
+  workspaceId: string,
+  goalId: string,
+): Promise<Goal> {
+  const data =
+    await request<DeletedGoalResponse>(
+      `/goals/${goalId}`,
+      {
+        method: 'DELETE',
+        token,
+        workspaceId,
+      },
+    );
+
+  return data.deletedGoal;
 }
 
 export async function createCreditCard(

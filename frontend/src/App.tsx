@@ -32,6 +32,7 @@ import AccountsPage from './pages/AccountsPage';
 import BudgetsPage from './pages/BudgetsPage';
 import CreditCardsPage from './pages/CreditCardsPage';
 import DashboardPage from './pages/DashboardPage';
+import GoalsPage from './pages/GoalsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import TransactionsPage from './pages/TransactionsPage';
 
@@ -627,10 +628,7 @@ function App() {
         <Route
           path="/goals"
           element={
-            <PlaceholderPage
-              title="Metas"
-              description="Transforme seus objetivos financeiros em planos acompanháveis."
-            />
+            <GoalsPage />
           }
         />
 

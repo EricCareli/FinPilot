@@ -291,6 +291,40 @@ export interface UpdateBudgetInput {
   year?: number;
 }
 
+export interface Goal {
+  id: string;
+  workspaceId: string;
+  name: string;
+  targetAmount: MoneyValue;
+  currentAmount: MoneyValue;
+  deadline: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalProgress {
+  goal: Goal;
+  remaining: MoneyValue;
+  percentage: MoneyValue;
+  completed: boolean;
+}
+
+export interface CreateGoalInput {
+  name: string;
+  targetAmount: number;
+  deadline?: string;
+}
+
+export interface UpdateGoalInput {
+  name?: string;
+  targetAmount?: number;
+  deadline?: string | null;
+}
+
+export interface UpdateGoalAmountInput {
+  currentAmount: number;
+}
+
 export interface DashboardAccount {
   id: string;
   name: string;
