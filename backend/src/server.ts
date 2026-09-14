@@ -1,6 +1,8 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
 
 import { healthRoutes } from './routes/health.routes.js';
 import { authRoutes } from './routes/auth.routes.js';
@@ -27,6 +29,9 @@ const PORT =
 
 const RECURRING_PROCESSOR_INTERVAL_MS =
   60_000;
+
+const RATE_LIMIT_MAX_REQUESTS =
+  120;
 
 const JWT_SECRET =
   process.env.JWT_SECRET;
@@ -150,6 +155,21 @@ async function buildServer() {
           message:
             'Internal server error',
         });
+    },
+  );
+
+  await app.register(
+    helmet,
+  );
+
+  await app.register(
+    rateLimit,
+    {
+      global: true,
+      max:
+        RATE_LIMIT_MAX_REQUESTS,
+      timeWindow:
+        '1 minute',
     },
   );
 
