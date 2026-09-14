@@ -23,6 +23,15 @@ export async function authRoutes(
 ): Promise<void> {
   app.post(
     '/auth/register',
+    {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -120,6 +129,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/verify-email',
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -189,6 +207,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/resend-verification',
+    {
+      config: {
+        rateLimit: {
+          max: 3,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -246,6 +273,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/forgot-password',
+    {
+      config: {
+        rateLimit: {
+          max: 3,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -303,6 +339,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/verify-password-reset',
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -375,6 +420,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/reset-password',
+    {
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
@@ -437,6 +491,15 @@ export async function authRoutes(
 
   app.post(
     '/auth/login',
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow:
+            '1 minute',
+        },
+      },
+    },
     async (
       request,
       reply,
