@@ -17,7 +17,7 @@ on:
 
 jobs:
   backend:
-    name: Typecheck and Integration Tests
+    name: Build, Typecheck and Integration Tests
     runs-on: ubuntu-latest
 
     services:
@@ -68,6 +68,9 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Build backend
+        run: npm run build
 
       - name: Run integration tests
         run: npm test
