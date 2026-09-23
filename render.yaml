@@ -29,7 +29,7 @@ services:
         sync: false
 
       - key: CORS_ORIGIN
-        sync: false
+        value: https://finpilot-web-pg4f.onrender.com
 
   - type: web
     name: finpilot-web
