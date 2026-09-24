@@ -9,9 +9,15 @@ The project was developed as a portfolio application with production-oriented pr
 - Web: https://finpilotapp.com.br
 - API: https://api.finpilotapp.com.br
 
-## Preview
+## Screenshots
+
+### Login
 
 ![FinPilot login screen](docs/images/login.png)
+
+### Dashboard
+
+![FinPilot dashboard](docs/images/dashboard.png)
 
 ## Overview
 
@@ -147,6 +153,7 @@ FinPilot/
 │
 ├── docs/
 │   ├── images/
+│   │   ├── dashboard.png
 │   │   └── login.png
 │   ├── ARCHITECTURE.md
 │   └── PRD.md
