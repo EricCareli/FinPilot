@@ -1,6 +1,6 @@
 # FinPilot
 
-FinPilot is a full-stack personal finance platform built to provide a secure, modern, and scalable foundation for personal financial management.
+FinPilot is a full-stack financial management platform built for both personal and business use, providing a secure, modern, and scalable foundation for managing finances.
 
 The project was developed as a portfolio application with production-oriented practices, including authentication, email verification, password recovery, security controls, automated testing, CI pipelines, cloud deployment, custom domains, and transactional email infrastructure.
 
@@ -23,7 +23,7 @@ The project was developed as a portfolio application with production-oriented pr
 
 FinPilot was designed as a real-world full-stack application rather than a simple demo project.
 
-The platform currently includes a complete authentication and account-management system, with a React frontend communicating with a Fastify API backed by PostgreSQL.
+The platform provides a foundation for personal and business financial management, with a React frontend communicating with a Fastify API backed by PostgreSQL.
 
 The application is deployed in production and operates independently from the local development environment.
 
@@ -389,7 +389,7 @@ Additional project documentation is available in:
 
 FinPilot is actively being developed.
 
-Current focus areas include improving the financial management experience, increasing automated frontend coverage, expanding end-to-end testing, and preparing the architecture for future mobile applications.
+Current focus areas include expanding personal and business financial management features, increasing automated frontend coverage, expanding end-to-end testing, and preparing the architecture for future mobile applications.
 
 ## Future
 
