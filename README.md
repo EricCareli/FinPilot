@@ -1,5 +1,8 @@
 # FinPilot
 
+[![Backend CI](https://github.com/EricCareli/FinPilot/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/EricCareli/FinPilot/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/EricCareli/FinPilot/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/EricCareli/FinPilot/actions/workflows/frontend-ci.yml)
+
 FinPilot is a full-stack financial management platform built for both personal and business use, providing a secure, modern, and scalable foundation for managing finances.
 
 The project was developed as a portfolio application with production-oriented practices, including authentication, email verification, password recovery, security controls, automated testing, CI pipelines, cloud deployment, custom domains, and transactional email infrastructure.
