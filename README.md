@@ -9,6 +9,10 @@ The project was developed as a portfolio application with production-oriented pr
 - Web: https://finpilotapp.com.br
 - API: https://api.finpilotapp.com.br
 
+## Preview
+
+![FinPilot login screen](docs/images/login.png)
+
 ## Overview
 
 FinPilot was designed as a real-world full-stack application rather than a simple demo project.
@@ -142,6 +146,8 @@ FinPilot/
 │   └── tsconfig.json
 │
 ├── docs/
+│   ├── images/
+│   │   └── login.png
 │   ├── ARCHITECTURE.md
 │   └── PRD.md
 │
@@ -152,3 +158,249 @@ FinPilot/
 │
 ├── render.yaml
 └── README.md
+```
+
+## Architecture
+
+The application follows a client-server architecture.
+
+```text
+Browser
+   │
+   ▼
+React + TypeScript
+finpilotapp.com.br
+   │
+   │ HTTPS / REST API
+   ▼
+Fastify + TypeScript
+api.finpilotapp.com.br
+   │
+   ▼
+Prisma ORM
+   │
+   ▼
+PostgreSQL
+```
+
+Transactional emails are delivered through Resend using the dedicated email subdomain:
+
+```text
+mail.finpilotapp.com.br
+```
+
+## Health Endpoints
+
+The backend exposes health endpoints for monitoring:
+
+```http
+GET /health
+GET /health/live
+GET /health/ready
+```
+
+The readiness endpoint also verifies database connectivity.
+
+Example:
+
+```json
+{
+  "status": "ok",
+  "service": "finpilot-api",
+  "environment": "production",
+  "checks": {
+    "database": {
+      "status": "ok"
+    }
+  }
+}
+```
+
+## Local Development
+
+### Requirements
+
+Install:
+
+- Node.js 24+
+- npm
+- PostgreSQL
+- Git
+
+Clone the repository:
+
+```bash
+git clone git@github.com:EricCareli/FinPilot.git
+cd FinPilot
+```
+
+## Backend Setup
+
+Enter the backend directory:
+
+```bash
+cd backend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env` file based on `.env.example`.
+
+Example:
+
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
+JWT_SECRET="replace-with-a-strong-secret"
+RESEND_API_KEY="re_replace_me"
+EMAIL_FROM="FinPilot <no-reply@your-domain.com>"
+CORS_ORIGIN="http://localhost:5173"
+```
+
+Generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Apply database migrations:
+
+```bash
+npx prisma migrate deploy
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The API runs by default at:
+
+```text
+http://localhost:3333
+```
+
+## Frontend Setup
+
+Enter the frontend directory:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```env
+VITE_API_URL="http://localhost:3333"
+```
+
+Start the frontend:
+
+```bash
+npm run dev
+```
+
+The development application runs by default at:
+
+```text
+http://localhost:5173
+```
+
+## Quality Checks
+
+### Backend
+
+Type checking:
+
+```bash
+npm run typecheck
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+Tests:
+
+```bash
+npm test
+```
+
+### Frontend
+
+Lint:
+
+```bash
+npm run lint
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+## Production Deployment
+
+The production infrastructure is described through `render.yaml`.
+
+Production services:
+
+```text
+Frontend
+https://finpilotapp.com.br
+
+Backend API
+https://api.finpilotapp.com.br
+
+Transactional Email
+mail.finpilotapp.com.br
+```
+
+The frontend and backend are automatically rebuilt when production configuration changes are pushed to the main branch.
+
+## Documentation
+
+Additional project documentation is available in:
+
+- `docs/PRD.md`
+- `docs/ARCHITECTURE.md`
+
+## Development Status
+
+FinPilot is actively being developed.
+
+Current focus areas include improving the financial management experience, increasing automated frontend coverage, expanding end-to-end testing, and preparing the architecture for future mobile applications.
+
+## Future
+
+The backend was designed so it can later serve additional clients besides the web application.
+
+Planned clients include:
+
+- iOS application
+- Android application
+
+Both mobile applications will reuse the same FinPilot API.
+
+## Author
+
+**Eric Careli**
+
+GitHub: [@EricCareli](https://github.com/EricCareli)
+
+---
+
+FinPilot is a portfolio project focused on full-stack development, software architecture, application security, testing, CI/CD, and production deployment.
